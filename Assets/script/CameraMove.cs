@@ -4,7 +4,12 @@ using UnityEngine;
 
 public class CameraMove : MonoBehaviour
 {
+    public Transform target;
+
     public float rotateSpeed = 5f; // 회전 속도
+    public float verticalLimit = 60f; // 수직 회전 제한 각도
+
+    private float verticalRotation = 0f; // 수직 회전 각도 저장 변수
 
     void Update()
     {
@@ -19,9 +24,10 @@ public class CameraMove : MonoBehaviour
     void RotateObject(float mouseX, float mouseY)
     {
         // 수평 회전
-        transform.Rotate(Vector3.up * mouseX * rotateSpeed, Space.World);
+        target.Rotate(Vector3.up * mouseX * rotateSpeed, Space.World);
 
-        // 수직 회전 (상하로 돌리지 않으려면 주석 처리)
-        // transform.Rotate(Vector3.left * mouseY * rotateSpeed, Space.Self);
+        verticalRotation -= mouseY * rotateSpeed;
+        verticalRotation = Mathf.Clamp(verticalRotation, -verticalLimit, verticalLimit); // 수직 회전 각도 제한
+        transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f); // 카메라 수직 회전 적용
     }
 }
