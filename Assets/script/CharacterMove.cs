@@ -5,6 +5,15 @@ using UnityEngine;
 public class CharacterMove : MonoBehaviour
 {
     public float speed = 2.5f;
+    public float jumpForce = 10f; // 점프 힘 조절을 위한 변수
+
+    private Rigidbody rb;
+    private bool isJumped = false;
+
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
 
     void Update()
     {
@@ -22,9 +31,16 @@ public class CharacterMove : MonoBehaviour
         // 현재 위치에 이동량을 더해 캐릭터를 이동시킴
         transform.Translate(movement);
 
-        
+        if (Input.GetKeyDown(KeyCode.Space)) // 스페이스바를 누르면
+        {
+            Jump(); // 점프 함수 호출
+        }
 
 
+    }
+    private void Jump()
+    {
+        rb.velocity = new Vector3(rb.velocity.x,jumpForce, rb.velocity.z); // 점프 힘을 적용하여 Rigidbody의 y축 속도를 변경
     }
 
 }
