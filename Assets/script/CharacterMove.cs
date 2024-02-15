@@ -2,79 +2,127 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum CharacterState
+{
+    Idle,
+    Walking,
+    Attacking,
+    Jumping,
+    Blocking
+}
+
 public class CharacterMove : MonoBehaviour
 {
     public float speed = 2.5f;
-    public float jumpForce = 10f; // 점프 힘 조절을 위한 변수
+    public float jumpForce = 10f;
 
     private Rigidbody rb;
-    private bool isJumped = false;
-    private JumpDetection a;
+    private Animator animator;
+    private CharacterState currentState = CharacterState.Idle;
+    
+    public GameObject childAttack;
 
-    Animator m_Animator;
 
-
-    private void Start()
+    void Start()
     {
         rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        
 
-        a = GetComponentInChildren<JumpDetection>();
-
-        m_Animator = GetComponent<Animator>();
     }
 
     void Update()
     {
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * 2.0f : speed;
-
         
-        if(Input.GetKeyDown(KeyCode.LeftShift))
+        HandleInput();
+        UpdateAnimation();
+
+        UpdateAttackObject();
+
+        if (currentState == CharacterState.Attacking && !animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"))
         {
-            
-            m_Animator.SetBool("Run", true);
+            ChangeState(CharacterState.Idle);
         }
-        if(Input.GetKeyUp(KeyCode.LeftShift))
+
+        if (currentState == CharacterState.Jumping && !animator.GetCurrentAnimatorStateInfo(0).IsName("Jump"))
         {
-            m_Animator.SetBool("Run", false);
+            ChangeState(CharacterState.Idle);
         }
-        
-        
+    }
+   
 
-
-
-        // WSAD 키 입력을 감지하여 이동 방향을 설정
+    void HandleInput()
+    {
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-
-        if (vertical != 0)
-        {
-            m_Animator.SetFloat("Speed", Mathf.Max(Mathf.Abs(horizontal), Mathf.Abs(vertical)));
-            //애니메이션 재생
-        }
-
-        // 이동 방향에 속도를 곱하여 실제 이동 속도를 계산
-        
-
-        Vector3 movement = new Vector3(horizontal, 0f, vertical) * currentSpeed * Time.deltaTime;
-
-        // 현재 위치에 이동량을 더해 캐릭터를 이동시킴
+        Vector3 movement = new Vector3(horizontal, 0f, vertical) * speed * Time.deltaTime;
         transform.Translate(movement);
 
-        if (a.isGrounded && Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetMouseButtonDown(0) && currentState != CharacterState.Attacking)
         {
-            m_Animator.SetTrigger("Jump");
-            Jump(); // 점프 함수 호출
+            
+            ChangeState(CharacterState.Attacking);
+            Attack();
         }
 
-        
-
-
-
+        if (IsGrounded() && Input.GetKeyDown(KeyCode.Space)  && currentState != CharacterState.Jumping)
+        {
+            ChangeState(CharacterState.Jumping);
+            Jump();
+        }
     }
-    private void Jump()
+
+    void UpdateAnimation()
     {
-        rb.velocity = new Vector3(rb.velocity.x,jumpForce, rb.velocity.z); // 점프 힘을 적용하여 Rigidbody의 y축 속도를 변경
+        animator.SetFloat("Speed", Mathf.Max(Mathf.Abs(Input.GetAxis("Horizontal")), Mathf.Abs(Input.GetAxis("Vertical"))));
+        animator.SetBool("Run", Input.GetKey(KeyCode.LeftShift));
+        animator.SetBool("Block", Input.GetMouseButton(1));
     }
+
+    bool IsGrounded()
+    {
+        // 점프할 때 땅에 닿아있는지 여부를 판단할 코드 작성
+        return true;
+    }
+
+    void Attack()
+    {
+        
+        animator.SetTrigger("Attack");
+        
+    }
+
+    void Jump()
+    {
+        animator.SetTrigger("Jump");
+        rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
+        
+    }
+
+    void ChangeState(CharacterState newState)
+    {
+        currentState = newState;
+    }
+
+    void UpdateAttackObject()
+    {
+        // 현재 상태가 공격 상태이고 공격 오브젝트가 존재하는지 확인
+        if (currentState == CharacterState.Attacking && childAttack != null)
+        {
+            // 공격 상태일 때는 공격 오브젝트를 활성화
+            childAttack.SetActive(true);
+        }
+        else
+        {
+            // 그 외의 상태일 때는 공격 오브젝트를 비활성화
+            if (childAttack != null)
+            {
+                childAttack.SetActive(false);
+            }
+        }
+    }
+    
 
 }
