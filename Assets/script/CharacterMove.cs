@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public enum CharacterState
 {
     Idle,
@@ -20,29 +19,23 @@ public class CharacterMove : MonoBehaviour
     private Rigidbody rb;
     private Animator animator;
     private CharacterState currentState = CharacterState.Idle;
-    
-    public GameObject childAttack;
 
+    public GameObject childAttack;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
-        
-
     }
 
     void Update()
     {
-        
         HandleInput();
         UpdateAnimation();
 
-        UpdateAttackObject();
-
         if (currentState == CharacterState.Attacking && !animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"))
         {
-            ChangeState(CharacterState.Idle);
+            StartCoroutine(ActivateAttackObjectCoroutine());
         }
 
         if (currentState == CharacterState.Jumping && !animator.GetCurrentAnimatorStateInfo(0).IsName("Jump"))
@@ -50,7 +43,6 @@ public class CharacterMove : MonoBehaviour
             ChangeState(CharacterState.Idle);
         }
     }
-   
 
     void HandleInput()
     {
@@ -60,14 +52,19 @@ public class CharacterMove : MonoBehaviour
         Vector3 movement = new Vector3(horizontal, 0f, vertical) * speed * Time.deltaTime;
         transform.Translate(movement);
 
+        if(horizontal != 0f)
+        {
+            animator.SetBool("Move", true);
+        }
+
+
         if (Input.GetMouseButtonDown(0) && currentState != CharacterState.Attacking)
         {
-            
             ChangeState(CharacterState.Attacking);
             Attack();
         }
 
-        if (IsGrounded() && Input.GetKeyDown(KeyCode.Space)  && currentState != CharacterState.Jumping)
+        if (IsGrounded() && Input.GetKeyDown(KeyCode.Space) && currentState != CharacterState.Jumping)
         {
             ChangeState(CharacterState.Jumping);
             Jump();
@@ -76,7 +73,11 @@ public class CharacterMove : MonoBehaviour
 
     void UpdateAnimation()
     {
-        animator.SetFloat("Speed", Mathf.Max(Mathf.Abs(Input.GetAxis("Horizontal")), Mathf.Abs(Input.GetAxis("Vertical"))));
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        
+        animator.SetFloat("Speed", horizontal);
+        animator.SetFloat("Speed", vertical);
         animator.SetBool("Run", Input.GetKey(KeyCode.LeftShift));
         animator.SetBool("Block", Input.GetMouseButton(1));
     }
@@ -89,16 +90,13 @@ public class CharacterMove : MonoBehaviour
 
     void Attack()
     {
-        
         animator.SetTrigger("Attack");
-        
     }
 
     void Jump()
     {
         animator.SetTrigger("Jump");
         rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
-        
     }
 
     void ChangeState(CharacterState newState)
@@ -113,16 +111,16 @@ public class CharacterMove : MonoBehaviour
         {
             // 공격 상태일 때는 공격 오브젝트를 활성화
             childAttack.SetActive(true);
-        }
-        else
-        {
-            // 그 외의 상태일 때는 공격 오브젝트를 비활성화
-            if (childAttack != null)
-            {
-                childAttack.SetActive(false);
-            }
+            // 코루틴 시작
         }
     }
-    
 
+    IEnumerator ActivateAttackObjectCoroutine()
+    {
+        // 0.5초 대기
+        yield return new WaitForSeconds(1.0f);
+        // 대기 후에 공격 오브젝트 비활성화
+        childAttack.SetActive(false);
+        ChangeState(CharacterState.Idle);
+    }
 }
