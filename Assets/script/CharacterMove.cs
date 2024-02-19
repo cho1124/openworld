@@ -49,12 +49,25 @@ public class CharacterMove : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        Vector3 movement = new Vector3(horizontal, 0f, vertical) * speed * Time.deltaTime;
-        transform.Translate(movement);
-
-        if(horizontal != 0f)
+        if (vertical != 0 || horizontal != 0)
         {
-            animator.SetBool("Move", true);
+            Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            
+
+            
+
+            Vector3 movement = direction * speed * Time.deltaTime;
+            if (vertical > 0f)
+            {
+                transform.Translate(movement);
+            }
+            else
+            {
+                transform.rotation = targetRotation;
+                transform.Translate(movement, Space.World);
+            }
+            
         }
 
 
