@@ -1,6 +1,8 @@
-﻿ using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
+using UnityEngine.Windows;
 #endif
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
@@ -97,6 +99,9 @@ namespace StarterAssets
         private int _animIDJump;
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
+        private int _animIDAttack;
+        
+        private int _animIDDefence;
 
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
@@ -105,10 +110,19 @@ namespace StarterAssets
         private CharacterController _controller;
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
-
+        public GameObject _attackObject;
+        private Collider attackCollider;
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
+        private bool _isAttacking;
+        public float comboTime = 1.5f; // 콤보를 유지할 시간
+        public int maxComboCount = 3; // 최대 콤보 횟수
+
+        private int _comboCount = 0; // 콤보 카운터
+        private float _lastAttackTime; // 마지막 공격 시간
+
+        private bool _canMove = true; // 공격중이거나, 방어중일 때 움직임 값을 받지 않도록 함
 
         private bool IsCurrentDeviceMouse
         {
@@ -139,6 +153,11 @@ namespace StarterAssets
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
+            if (_attackObject != null)
+            {
+                attackCollider = _attackObject.GetComponent<Collider>();
+            }
+
 #if ENABLE_INPUT_SYSTEM 
             _playerInput = GetComponent<PlayerInput>();
 #else
@@ -159,6 +178,8 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
+            Attack();
+            Block();
         }
 
         private void LateUpdate()
@@ -173,6 +194,8 @@ namespace StarterAssets
             _animIDJump = Animator.StringToHash("Jump");
             _animIDFreeFall = Animator.StringToHash("FreeFall");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
+            _animIDAttack = Animator.StringToHash("Attack");
+            _animIDDefence = Animator.StringToHash("Defence");
         }
 
         private void GroundedCheck()
@@ -348,6 +371,8 @@ namespace StarterAssets
             }
         }
 
+        
+
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {
             if (lfAngle < -360f) lfAngle += 360f;
@@ -388,5 +413,80 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
             }
         }
+
+        private void Attack()
+        {
+
+            if (!Grounded)
+            {
+                _input.attack = false;
+            }
+
+            if (_input.attack && !_isAttacking && _canMove)
+            {
+                _isAttacking = true;
+                _canMove = false;
+
+                _input.move = Vector2.zero;
+                
+
+                if (_animator)
+                {
+                    //_animator.SetBool(_animIDAttack, true);
+                    _animator.SetTrigger(_animIDAttack);
+                    //_animator.SetInteger(_animIDAttack, 1);
+                    StartCoroutine(ActivateAttackObjectCoroutine());
+                }
+            }
+
+        }
+
+        private void Block()
+        {
+
+            // _input.defense 값이 false일 때 애니메이션을 중지합니다.
+            if (!_input.defense)
+                
+            {
+                if (_animator)
+                {
+                    _animator.SetBool(_animIDDefence, false);
+                }
+            }
+            // _input.defense 값이 true일 때 애니메이션을 시작합니다.
+            else
+            {
+                if (_animator)
+                {
+                    _animator.SetBool(_animIDDefence, true);
+                }
+            }
+
+
+        }
+
+        IEnumerator ActivateAttackObjectCoroutine()
+        {
+            // 애니메이션이 재생되는 동안 Attack Object 활성화
+            //_attackObject.SetActive(true);
+            attackCollider.enabled = true;
+
+
+            // 애니메이션이 끝날 때까지 대기
+            yield return new WaitForSeconds(1.0f);
+
+            // 애니메이션이 끝나면 Attack Object 비활성화
+            //_attackObject.SetActive(false);
+            attackCollider.enabled = false;
+
+            // 공격 상태 초기화
+            _isAttacking = false;
+            _canMove = true;
+            //_animator.SetBool(_animIDAttack, false);
+            //_animator.SetInteger(_animIDAttack, 0);
+            _input.attack = false;
+
+        }
+
     }
 }

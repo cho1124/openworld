@@ -50,6 +50,11 @@ namespace StarterAssets
 		{
 			AttackInput(value.isPressed);
 		}
+
+		public void OnDefence(InputValue value)
+		{
+			DefenceInput(value.isPressed);
+		}
 #endif
 
 
@@ -76,6 +81,7 @@ namespace StarterAssets
 		public void AttackInput(bool newAttackState)
 		{
 			attack = newAttackState;
+
 		}
 
 		public void DefenceInput(bool newDefenceState)
