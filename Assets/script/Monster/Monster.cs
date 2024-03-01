@@ -10,6 +10,7 @@ public class Monster : MonoBehaviour
     public int damage;
     public int defend;
     public float speed;
+    private Animator animator;
 
     private float attackInterval = 2f; // 공격 간격
 
@@ -25,7 +26,11 @@ public class Monster : MonoBehaviour
     void Start()
     {
         // attackInterval마다 Attack() 함수를 호출
-        InvokeRepeating("Attack", 0f, attackInterval);
+
+        currentHealth = maxHealth;
+        animator = GetComponent<Animator>();
+
+        //InvokeRepeating("Attack", 0f, attackInterval);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -67,7 +72,7 @@ public class Monster : MonoBehaviour
     public void Damaged(int damageAmount)
     {
         currentHealth -= damageAmount;
-
+        animator.SetTrigger("Damaged");
         if (currentHealth <= 0)
         {
             Die();
@@ -76,6 +81,7 @@ public class Monster : MonoBehaviour
 
     public void Die()
     {
+        animator.SetTrigger("Die");
         currentHealth = 0;
     }
 

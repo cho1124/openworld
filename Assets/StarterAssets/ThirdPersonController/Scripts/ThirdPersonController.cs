@@ -101,6 +101,7 @@ namespace StarterAssets
         private int _animIDMotionSpeed;
         private int _animIDAttack;
         
+        
         private int _animIDDefence;
 
 #if ENABLE_INPUT_SYSTEM 
@@ -112,6 +113,7 @@ namespace StarterAssets
         private GameObject _mainCamera;
         public GameObject _attackObject;
         private Collider attackCollider;
+        private CharacterStat characterStat;
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
@@ -153,6 +155,7 @@ namespace StarterAssets
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
+            characterStat = GetComponent<CharacterStat>();
             if (_attackObject != null)
             {
                 attackCollider = _attackObject.GetComponent<Collider>();
@@ -175,11 +178,16 @@ namespace StarterAssets
         {
             _hasAnimator = TryGetComponent(out _animator);
 
-            JumpAndGravity();
-            GroundedCheck();
-            Move();
-            Attack();
-            Block();
+            if (!characterStat.isDead)
+            {
+                // 캐릭터의 입력 처리
+                // 예를 들어 이동, 점프, 공격 등의 입력을 처리합니다.
+                GroundedCheck();
+                Move();
+                JumpAndGravity();
+                Attack();
+                Block();
+            }
         }
 
         private void LateUpdate()
@@ -196,6 +204,7 @@ namespace StarterAssets
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
             _animIDAttack = Animator.StringToHash("Attack");
             _animIDDefence = Animator.StringToHash("Defence");
+            
         }
 
         private void GroundedCheck()
@@ -325,6 +334,7 @@ namespace StarterAssets
                 // Jump
                 if (_input.jump && _jumpTimeoutDelta <= 0.0f)
                 {
+                    Debug.Log("jumped");
                     // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
 
@@ -464,6 +474,9 @@ namespace StarterAssets
 
 
         }
+
+        
+
 
         IEnumerator ActivateAttackObjectCoroutine()
         {
