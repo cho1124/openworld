@@ -380,6 +380,28 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 901889681}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &306714768 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 182470, guid: 20a769104331d8b48ac7d1ea0d49cdf3,
+    type: 3}
+  m_PrefabInstance: {fileID: 1643100481}
+  m_PrefabAsset: {fileID: 0}
+--- !u!54 &306714770
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306714768}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &359684114 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2261596943611064248, guid: d02b4c1007684904d9a45b75937341f9,
@@ -1266,10 +1288,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ad5a1974a056fb43bbea821eb2781e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  viewRadiusHorizontal: 30
-  viewAngleHorizontal: 30
-  viewRadiusVertical: 30
-  viewAngleVertical: 82
+  viewRadiusHorizontal: 10
+  viewAngleHorizontal: 120
+  viewRadiusVertical: 10
+  viewAngleVertical: 135
+  chaseDistance: 20
   targetMask:
     serializedVersion: 2
     m_Bits: 128
@@ -1493,11 +1516,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 409426, guid: 20a769104331d8b48ac7d1ea0d49cdf3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 16.10543
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 409426, guid: 20a769104331d8b48ac7d1ea0d49cdf3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -13.501648
+      value: -21.501648
       objectReference: {fileID: 0}
     - target: {fileID: 409426, guid: 20a769104331d8b48ac7d1ea0d49cdf3, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1538,6 +1561,10 @@ PrefabInstance:
     - target: {fileID: 495698, guid: 20a769104331d8b48ac7d1ea0d49cdf3, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.5844356
+      objectReference: {fileID: 0}
+    - target: {fileID: 9569754, guid: 20a769104331d8b48ac7d1ea0d49cdf3, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 20a769104331d8b48ac7d1ea0d49cdf3, type: 3}
