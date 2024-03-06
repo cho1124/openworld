@@ -5,6 +5,7 @@ using UnityEngine;
 public class FieldOfView : MonoBehaviour
 {
     private Animator animator;
+    private Dragon dragon;
 
     // 시야 영역의 반지름과 시야 각도
     public float viewRadiusHorizontal;
@@ -15,10 +16,18 @@ public class FieldOfView : MonoBehaviour
     [Range(0, 360)]
     public float viewAngleVertical;
 
+    [Range(0, 100)]
+    public float rotationSpeed;
+    
+
     public float chaseDistance = 50f; // 추적할 거리
+
+    public float combatSpeed = 1.0f; // 전투 속도
+    public float idleSpeed = 1.0f;   // 대기 속도
 
     private Transform playerTransform;
 
+    
 
 
     // 마스크 2종
@@ -26,6 +35,15 @@ public class FieldOfView : MonoBehaviour
 
     // Target mask에 ray hit된 transform을 보관하는 리스트
     public List<Transform> visibleTargets = new List<Transform>();
+
+    private void Awake()
+    {
+        dragon = GetComponent<Dragon>();
+        if (dragon == null)
+        {
+            Debug.LogError("Dragon component not found on the GameObject!");
+        }
+    }
 
     void Start()
     {
@@ -78,6 +96,7 @@ public class FieldOfView : MonoBehaviour
         }
     }
 
+
     void TrackingTarget()
     {
         if (visibleTargets.Count > 0)
@@ -91,77 +110,73 @@ public class FieldOfView : MonoBehaviour
             Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
             // 추적 방향 설정 등을 이어서 구현하십시오.
         }
-        else if (animator.GetBool("InCombat")) // 전투 상태에서만 검사
+
+
+        if (animator.GetBool("InCombat")) // 전투 상태에서만 검사
         {
             float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-
+            //Debug.Log(distanceToPlayer);
             if (distanceToPlayer <= chaseDistance)
             {
-                MoveTowardsPlayer(playerTransform.position);
-                AttackPlayerIfInRange(playerTransform.position);
+                
+                TrackPlayer(distanceToPlayer);
                 return;
             }
             // 플레이어가 추적 범위를 벗어나면 전투 상태 종료
+            transform.position = new Vector3(0, 0, -20);
+            transform.transform.rotation = Quaternion.identity;
+            animator.SetFloat("Speed", 0);
             animator.SetBool("InCombat", false);
         }
     }
 
-    void MoveTowardsPlayer(Vector3 playerPosition)
+
+    void TrackPlayer(float distance)
     {
-        // 플레이어 쪽으로 이동하는 코드를 여기에 추가
+        // 플레이어와의 거리 계산
+        
+
+        // 플레이어에게 다가가고 공격
+        if (distance > dragon.meleeAttackRange)
+        {
+            // 플레이어 쪽으로 이동
+            MoveTowardsPlayer(playerTransform.position);
+
+        }
+        else
+        {
+            // 플레이어 공격
+            AttackPlayerIfInRange(playerTransform.position);
+        }
     }
 
     void AttackPlayerIfInRange(Vector3 playerPosition)
     {
         float distanceToPlayer = Vector3.Distance(transform.position, playerPosition);
+        Debug.Log(distanceToPlayer);
+
+
+    }
+
+    void MoveTowardsPlayer(Vector3 playerPosition)
+    {
+        Vector3 directionToPlayer = (playerPosition - transform.position).normalized;
+
+        // 드래곤이 플레이어를 향하도록 회전값 계산
+        Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
+
+        // 이동 방향으로 이동하기 위해 플레이어를 향해 이동합니다.
+        transform.Translate(directionToPlayer * Time.deltaTime * combatSpeed);
         
+
+        // 부드러운 회전을 위해 드래곤의 현재 회전값을 targetRotation으로 점진적으로 회전합니다.
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+
+        animator.SetFloat("Speed", combatSpeed);
+        // 플레이어 쪽으로 이동하는 코드를 여기에 추가
     }
 
-
-    void FindVisibleTargetsHorizontal()
-    {
-        Collider[] targetsInViewRadius = Physics.OverlapSphere(transform.position, viewRadiusHorizontal, targetMask);
-
-        for (int i = 0; i < targetsInViewRadius.Length; i++)
-        {
-            Transform target = targetsInViewRadius[i].transform;
-            Vector3 dirToTarget = (target.position - transform.position).normalized;
-
-            // 플레이어와 forward와 target이 이루는 각이 설정한 각도 내라면
-            if (Vector3.Angle(transform.forward, dirToTarget) < viewAngleHorizontal / 2)
-            {
-                float dstToTarget = Vector3.Distance(transform.position, target.transform.position);
-
-                // 타겟으로 가는 레이캐스트에 obstacleMask가 걸리지 않으면 visibleTargets에 Add
-                if (!Physics.Raycast(transform.position, dirToTarget, dstToTarget, obstacleMask))
-                {
-                    visibleTargets.Add(target);
-                }
-            }
-        }
-    }
-
-    void FindVisibleTargetsVertical()
-    {
-        Collider[] targetsInViewRadius = Physics.OverlapSphere(transform.position, viewRadiusVertical, targetMask);
-
-        for (int i = 0; i < targetsInViewRadius.Length; i++)
-        {
-            Transform target = targetsInViewRadius[i].transform;
-            Vector3 dirToTarget = (target.position - transform.position).normalized;
-            float angleVertical = Vector3.Angle(transform.forward, dirToTarget); // 몬스터와 타겟 사이의 수직 각도 계산
-
-            if (angleVertical < viewAngleVertical / 2) // 수직 시야 각도 내에 있는지 확인
-            {
-                float dstToTarget = Vector3.Distance(transform.position, target.transform.position);
-
-                if (!Physics.Raycast(transform.position, dirToTarget, dstToTarget, obstacleMask))
-                {
-                    visibleTargets.Add(target);
-                }
-            }
-        }
-    }
+    
 
     // y축 오일러 각을 3차원 방향 벡터로 변환한다.
     // 원본과 구현이 살짝 다름에 주의. 결과는 같다.

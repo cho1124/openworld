@@ -10,7 +10,7 @@ public class Monster : MonoBehaviour
     public int damage;
     public int defend;
     public float speed;
-    private Animator animator;
+    public Animator animator;
 
     private float attackInterval = 2f; // 공격 간격
 
@@ -23,7 +23,7 @@ public class Monster : MonoBehaviour
         coll = GetComponent<BoxCollider>();
     }
 
-    void Start()
+    protected virtual void Start()
     {
         // attackInterval마다 Attack() 함수를 호출
 
