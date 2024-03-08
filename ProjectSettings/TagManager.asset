@@ -8,6 +8,7 @@ TagManager:
   - CinemachineTarget
   - Sword
   - Dragon
+  - Head
   layers:
   - Default
   - TransparentFX
@@ -37,8 +38,8 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - Body
+  - Head
   - 
   - 
   m_SortingLayers:

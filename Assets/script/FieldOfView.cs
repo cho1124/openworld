@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class FieldOfView : MonoBehaviour
 {
@@ -27,7 +29,7 @@ public class FieldOfView : MonoBehaviour
 
     private Transform playerTransform;
 
-    
+    NavMeshAgent nmAgent;
 
 
     // 마스크 2종
@@ -48,7 +50,7 @@ public class FieldOfView : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-
+        nmAgent = GetComponent<NavMeshAgent>();
         // 0.2초 간격으로 코루틴 호출
         StartCoroutine(FindTargetsWithDelay(0.2f));
     }
@@ -114,46 +116,52 @@ public class FieldOfView : MonoBehaviour
 
         if (animator.GetBool("InCombat")) // 전투 상태에서만 검사
         {
-            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-            //Debug.Log(distanceToPlayer);
-            if (distanceToPlayer <= chaseDistance)
-            {
-                
-                TrackPlayer(distanceToPlayer);
-                return;
-            }
-            // 플레이어가 추적 범위를 벗어나면 전투 상태 종료
-            transform.position = new Vector3(0, 0, -20);
-            transform.transform.rotation = Quaternion.identity;
-            animator.SetFloat("Speed", 0);
-            animator.SetBool("InCombat", false);
+            TrackPlayer();
         }
     }
 
-
-    void TrackPlayer(float distance)
+    void TrackPlayer()
     {
-        // 플레이어와의 거리 계산
-        
+        if (playerTransform == null)
+            return;
 
-        // 플레이어에게 다가가고 공격
-        if (distance > dragon.meleeAttackRange)
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        if (distanceToPlayer <= chaseDistance)
         {
-            // 플레이어 쪽으로 이동
-            MoveTowardsPlayer(playerTransform.position);
+            // 플레이어에게 다가가고 공격
+            if (distanceToPlayer > dragon.meleeAttackRange)
+            {
+                // 플레이어 쪽으로 이동
+                nmAgent.SetDestination(playerTransform.position);
 
+                // 추적하는 영역 제한
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(playerTransform.position, out hit, chaseDistance, NavMesh.AllAreas))
+                {
+                    nmAgent.SetDestination(hit.position);
+                }
+
+                animator.SetFloat("Speed", combatSpeed);
+            }
+            else
+            {
+                // 플레이어 공격
+                AttackPlayerIfInRange(playerTransform.position);
+            }
         }
         else
         {
-            // 플레이어 공격
-            AttackPlayerIfInRange(playerTransform.position);
+            // 추적 범위를 벗어났으므로 추적을 멈춤
+            nmAgent.SetDestination(transform.position);
+            animator.SetFloat("Speed", 0f);
+            animator.SetBool("InCombat", false);
         }
     }
 
     void AttackPlayerIfInRange(Vector3 playerPosition)
     {
         float distanceToPlayer = Vector3.Distance(transform.position, playerPosition);
-        Debug.Log(distanceToPlayer);
+        
 
 
     }
@@ -172,7 +180,7 @@ public class FieldOfView : MonoBehaviour
         // 부드러운 회전을 위해 드래곤의 현재 회전값을 targetRotation으로 점진적으로 회전합니다.
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
-        animator.SetFloat("Speed", combatSpeed);
+        
         // 플레이어 쪽으로 이동하는 코드를 여기에 추가
     }
 

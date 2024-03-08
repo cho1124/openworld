@@ -427,6 +427,7 @@ namespace StarterAssets
         private void Attack()
         {
 
+
             if (!Grounded)
             {
                 _input.attack = false;
@@ -486,7 +487,7 @@ namespace StarterAssets
 
 
             // 애니메이션이 끝날 때까지 대기
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.2f);
 
             // 애니메이션이 끝나면 Attack Object 비활성화
             //_attackObject.SetActive(false);
