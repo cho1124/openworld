@@ -7,21 +7,21 @@ public class DragonBehavior : MonoBehaviour
 
     private void Start()
     {
-        monster = GetComponent<Monster>();
-        
+        monster = GetComponentInParent<Monster>();
+        if (monster != null)
+        {
+            Debug.Log("good?2");
+        }
     }
 
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Sword"))
         {
-            Sword sword = other.GetComponent<Sword>();
-            if (sword != null)
-            {
-                
-                monster.Damaged(sword.damage);
-                
-            }
+            int damage = other.GetComponent<Sword>().damage; // 무기의 데미지 계산
+
+            //Debug.Log("headShot");
+            monster.Damaged(damage); // 몬스터의 머리에 데미지를 적용하는 함수 호출
         }
 
         if (other.CompareTag("Player"))
