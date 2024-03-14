@@ -118,11 +118,11 @@ namespace StarterAssets
 
         private bool _hasAnimator;
         private bool _isAttacking;
-        public float comboTime = 1.5f; // 콤보를 유지할 시간
+        public float _attackCooldown = 1.0f; // 콤보를 유지할 시간
         public int maxComboCount = 3; // 최대 콤보 횟수
 
         private int _comboCount = 0; // 콤보 카운터
-        private float _lastAttackTime; // 마지막 공격 시간
+        
 
         private bool _canMove = true; // 공격중이거나, 방어중일 때 움직임 값을 받지 않도록 함
 
@@ -433,11 +433,11 @@ namespace StarterAssets
                 _input.attack = false;
             }
 
-            if (_input.attack && !_isAttacking && _canMove)
+            if (_input.attack &&  _canMove)
             {
                 _isAttacking = true;
                 _canMove = false;
-
+                
                 _input.move = Vector2.zero;
                 
 
@@ -476,14 +476,24 @@ namespace StarterAssets
 
         }
 
-        
+        private void enableAttackCol()
+        {
+            attackCollider.enabled = true;
+        }
+
+        private void disableAttackCol()
+        {
+            attackCollider.enabled = false;
+        }
+
+        private
 
 
         IEnumerator ActivateAttackObjectCoroutine()
         {
             // 애니메이션이 재생되는 동안 Attack Object 활성화
             //_attackObject.SetActive(true);
-            attackCollider.enabled = true;
+            
 
 
             // 애니메이션이 끝날 때까지 대기
@@ -491,7 +501,7 @@ namespace StarterAssets
 
             // 애니메이션이 끝나면 Attack Object 비활성화
             //_attackObject.SetActive(false);
-            attackCollider.enabled = false;
+            
 
             // 공격 상태 초기화
             _isAttacking = false;

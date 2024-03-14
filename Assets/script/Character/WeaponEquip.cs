@@ -11,23 +11,29 @@ public class WeaponEquip : MonoBehaviour
     public GameObject sword;
 
     private bool equipBow = false;
-    private bool equipSword = false;
+    private bool equipSword = true;
     private Animator animator; // 애니메이터 컴포넌트에 대한 참조
 
     void Start()
     {
         animator = GetComponent<Animator>(); // 애니메이터 컴포넌트 가져오기
+        
+        animator.SetBool("UseSword", true);
+        MoveBowToBack();
+        MoveSwordToRightHand();
+
+
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Z) && !equipBow && bow != null)
+        if (Input.GetKeyDown(KeyCode.Z) && !equipBow)
         {
             ReleaseSword();
             equipBow = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.X) && !equipSword && sword != null)
+        if (Input.GetKeyDown(KeyCode.X) && !equipSword)
         {
 
             ReleaseBow();
@@ -44,7 +50,7 @@ public class WeaponEquip : MonoBehaviour
         animator.SetBool("UseSword", true);
     }
 
-    
+
 
     private void ReleaseSword()
     {
@@ -76,7 +82,7 @@ public class WeaponEquip : MonoBehaviour
         sword.transform.localRotation = Quaternion.identity;
     }
 
-    void MoveSwordToBack() 
+    void MoveSwordToBack()
     {
         sword.transform.SetParent(backPosition);
         sword.transform.localPosition = new Vector3(-0.1402862f, 0.145049f, 0.1862096f); // 이 값을 (-0.2, 0, -0.15)

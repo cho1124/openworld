@@ -19,7 +19,7 @@ public class DragonHead : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Sword")) // 만약 충돌한 객체가 Sword 태그를 가지고 충돌 처리가 이루어지지 않은 경우
+        if (other.CompareTag("Sword"))
         {
             int damage = other.GetComponent<Sword>().damage; // 무기의 데미지 계산
 
