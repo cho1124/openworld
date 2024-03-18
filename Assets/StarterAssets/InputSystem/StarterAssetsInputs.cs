@@ -1,6 +1,8 @@
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
+using static UnityEngine.Rendering.DebugUI;
 #endif
 
 namespace StarterAssets
@@ -13,7 +15,10 @@ namespace StarterAssets
 		public bool jump;
 		public bool sprint;
 		public bool attack;
+		public bool hold;
+		public bool holdout;
 		public bool defense;
+
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -46,12 +51,43 @@ namespace StarterAssets
 			SprintInput(value.isPressed);
 		}
 
-		public void OnAttack(InputValue value)
-		{
-			AttackInput(value.isPressed);
-		}
+        //public void OnAttack(InputValue value)
+        //{
+        //
+        //	AttackInput(value.isPressed);
+        //	
+        //
+        //}
 
-		public void OnDefence(InputValue value)
+        public void OnAttack(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                if (context.interaction is HoldInteraction)
+                {
+                    Debug.Log("Hold");
+                    HoldInput(true); // Hold 시작
+					holdout = false;
+					
+                }
+                else if (context.interaction is PressInteraction)
+                {
+                    Debug.Log("Pressed");
+                    AttackInput(true); // Pressed 상태
+                }
+            }
+            else if (context.canceled)
+            {
+                if (context.interaction is HoldInteraction)
+                {
+                    Debug.Log("Hold ended");
+					holdout = true;
+                }
+            }
+        }
+
+
+        public void OnDefence(InputValue value)
 		{
 			DefenceInput(value.isPressed);
 		}
@@ -82,6 +118,16 @@ namespace StarterAssets
 		{
 			attack = newAttackState;
 
+		}
+
+		public void HoldInput(bool newHoldState)
+		{
+			hold = newHoldState;
+		}
+
+		public void HoldOut(bool newOutState)
+		{
+			holdout = newOutState;
 		}
 
 		public void DefenceInput(bool newDefenceState)

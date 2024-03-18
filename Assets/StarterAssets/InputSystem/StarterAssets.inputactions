@@ -58,6 +58,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "test",
+                    "type": "Button",
+                    "id": "3e6ec46a-e02e-4677-8733-9e53d15cf3fd",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -241,7 +250,7 @@
                     "name": "",
                     "id": "e5397b7e-7f78-44be-a280-bd8369774de1",
                     "path": "<Mouse>/leftButton",
-                    "interactions": "Press",
+                    "interactions": "Hold,Press(pressPoint=0.5,behavior=1)",
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Attack",
@@ -256,6 +265,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Defence",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "65cf2f4f-1983-43c9-9d16-17ed2570eec8",
+                    "path": "<Keyboard>/#(R)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "test",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

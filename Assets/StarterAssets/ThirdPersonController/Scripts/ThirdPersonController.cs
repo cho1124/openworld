@@ -100,6 +100,7 @@ namespace StarterAssets
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
         private int _animIDAttack;
+        private int _animIDHold;
         
         
         private int _animIDDefence;
@@ -118,6 +119,7 @@ namespace StarterAssets
 
         private bool _hasAnimator;
         private bool _isAttacking;
+        private bool isAiming = false;
         public float _attackCooldown = 1.0f; // 콤보를 유지할 시간
         public int maxComboCount = 3; // 최대 콤보 횟수
 
@@ -125,6 +127,9 @@ namespace StarterAssets
         
 
         private bool _canMove = true; // 공격중이거나, 방어중일 때 움직임 값을 받지 않도록 함
+        private bool holdTimerStarted = false;
+        private float holdTimer = 0f;
+        private float holdTimeThreshold = 1.0f; // 홀드가 활성화되는 시간(예: 1초)
 
         private bool IsCurrentDeviceMouse
         {
@@ -187,12 +192,15 @@ namespace StarterAssets
                 JumpAndGravity();
                 Attack();
                 Block();
+                ChargeAttack();
             }
         }
 
         private void LateUpdate()
         {
             CameraRotation();
+
+            
         }
 
         private void AssignAnimationIDs()
@@ -203,6 +211,7 @@ namespace StarterAssets
             _animIDFreeFall = Animator.StringToHash("FreeFall");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
             _animIDAttack = Animator.StringToHash("Attack");
+            _animIDHold = Animator.StringToHash("Hold");
             _animIDDefence = Animator.StringToHash("Defence");
             
         }
@@ -229,9 +238,23 @@ namespace StarterAssets
             {
                 //Don't multiply mouse input by Time.deltaTime;
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
+                // deltatime을 곱하는 이유는 게임의 상황과 관계없이 일정한 성능을 낼 수 있도록 한다. 게임의 속도가 빠르면 deltatime은 작아지고 게임의 속도가 느려지면 deltatime은 커지기 때문에 이를 곱하면 일정한 속도를 낼 수 있다.
+                
+                float mouseX = _input.look.x * deltaTimeMultiplier;
+                float mouseY = _input.look.y * deltaTimeMultiplier;
+                
 
-                _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier;
-                _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier;
+                if(!isAiming)
+                {
+                    _cinemachineTargetYaw += mouseX;
+                    _cinemachineTargetPitch += mouseY;
+                }
+                else
+                {
+                    _cinemachineTargetYaw = transform.eulerAngles.y;
+                    _cinemachineTargetPitch = 0; // 수평 회전만 유지
+                }
+
             }
 
             // clamp our rotations so our values are limited 360 degrees
@@ -426,31 +449,53 @@ namespace StarterAssets
 
         private void Attack()
         {
-
-
             if (!Grounded)
             {
                 _input.attack = false;
+                
             }
 
-            if (_input.attack &&  _canMove)
+            if (_input.attack && _canMove)
             {
                 _isAttacking = true;
                 _canMove = false;
-                
                 _input.move = Vector2.zero;
-                
 
                 if (_animator)
                 {
-                    //_animator.SetBool(_animIDAttack, true);
                     _animator.SetTrigger(_animIDAttack);
-                    //_animator.SetInteger(_animIDAttack, 1);
                     StartCoroutine(ActivateAttackObjectCoroutine());
                 }
             }
-
         }
+
+        private void ChargeAttack()
+        {
+            if (!Grounded)
+            {
+                _input.hold = false;
+            }
+
+            if (_input.hold && _canMove)
+            {
+                _isAttacking = true;
+                _canMove = false;
+                _input.move = Vector2.zero;
+
+                if (_animator)
+                {
+                    _animator.SetBool(_animIDHold, true);
+                }
+            }
+
+            if (_input.holdout && _animator.GetBool(_animIDHold))
+            {
+                _animator.SetBool(_animIDHold, false);
+                _canMove = true;
+            }
+        }
+
+
 
         private void Block()
         {
@@ -476,6 +521,8 @@ namespace StarterAssets
 
         }
 
+
+        //애니메이션에 사용되는 함수들
         private void enableAttackCol()
         {
             attackCollider.enabled = true;
@@ -497,7 +544,7 @@ namespace StarterAssets
 
 
             // 애니메이션이 끝날 때까지 대기
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.5f);
 
             // 애니메이션이 끝나면 Attack Object 비활성화
             //_attackObject.SetActive(false);
@@ -506,6 +553,7 @@ namespace StarterAssets
             // 공격 상태 초기화
             _isAttacking = false;
             _canMove = true;
+            
             //_animator.SetBool(_animIDAttack, false);
             //_animator.SetInteger(_animIDAttack, 0);
             _input.attack = false;
