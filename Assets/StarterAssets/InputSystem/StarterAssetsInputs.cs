@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Interactions;
@@ -20,6 +21,7 @@ namespace StarterAssets
 		public bool defense;
 
 
+
 		[Header("Movement Settings")]
 		public bool analogMovement;
 
@@ -27,29 +29,38 @@ namespace StarterAssets
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 
+        private bool holding = false;
+        private float holdTimeThreshold = 1.5f; // 홀드로 간주할 최소 시간 (예시로 0.5초)
+
 #if ENABLE_INPUT_SYSTEM
-		public void OnMove(InputValue value)
+        public void OnMove(InputAction.CallbackContext context)
+        {
+            MoveInput(context.ReadValue<Vector2>());
+        }
+
+
+        public void OnLook(InputAction.CallbackContext context)
+        {
+            
+            if (cursorInputForLook)
+            {
+                LookInput(context.ReadValue<Vector2>());
+            }
+        }
+
+        public void OnJump(InputAction.CallbackContext context)
 		{
-			MoveInput(value.Get<Vector2>());
+			JumpInput(context.performed);
 		}
 
-		public void OnLook(InputValue value)
+		public void OnSprint(InputAction.CallbackContext context)
 		{
-			if(cursorInputForLook)
-			{
-				LookInput(value.Get<Vector2>());
-			}
+			SprintInput(context.performed);
 		}
 
-		public void OnJump(InputValue value)
-		{
-			JumpInput(value.isPressed);
-		}
 
-		public void OnSprint(InputValue value)
-		{
-			SprintInput(value.isPressed);
-		}
+
+
 
         //public void OnAttack(InputValue value)
         //{
@@ -63,40 +74,71 @@ namespace StarterAssets
         {
             if (context.performed)
             {
-                if (context.interaction is HoldInteraction)
+
+                if (context.interaction is TapInteraction && !context.canceled)
                 {
-                    Debug.Log("Hold");
-                    HoldInput(true); // Hold 시작
-					holdout = false;
-					
+                    AttackInput(true);
                 }
-                else if (context.interaction is PressInteraction)
+                else if (context.interaction is HoldInteraction)
+                {
+                    //Debug.Log("Hold");
+                    HoldInput(true); // Hold 시작
+                    holdout = false;
+                    holding = true;
+                    StartCoroutine(HoldCoroutine());
+                }
+                else if (context.interaction is PressInteraction && !context.canceled)
                 {
                     Debug.Log("Pressed");
                     AttackInput(true); // Pressed 상태
+					//여기서 문제 발생, context
                 }
+
+				
+
             }
             else if (context.canceled)
             {
                 if (context.interaction is HoldInteraction)
                 {
-                    Debug.Log("Hold ended");
-					holdout = true;
+                    //Debug.Log("Hold ended");
+                    holdout = true;
+                    holding = false;
+                }
+                else if (context.interaction is PressInteraction)
+                {
+                    Debug.Log("Pressed ended");
+                    // Pressed가 해제됨을 나타내는 로그 출력 등 추가 처리
+                    
                 }
             }
         }
 
+        private IEnumerator HoldCoroutine()
+        {
+            yield return new WaitForSeconds(holdTimeThreshold);
 
-        public void OnDefence(InputValue value)
-		{
-			DefenceInput(value.isPressed);
-		}
+            if (holding)
+            {
+                Debug.Log("Shoot");
+                // 홀드가 일정 시간 이상 지속되었을 때 추가 작업 수행
+            }
+        }
+
+
+        public void OnDefence(InputAction.CallbackContext context)
+        {
+            DefenceInput(context.performed);
+        }
 #endif
 
 
-		public void MoveInput(Vector2 newMoveDirection)
+        public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
+
+            
+
 		} 
 
 		public void LookInput(Vector2 newLookDirection)

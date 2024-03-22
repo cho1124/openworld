@@ -92,6 +92,7 @@ namespace StarterAssets
         // timeout deltatime
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
+        private float _attackTimeoutDelta;
 
         // animation IDs
         private int _animIDSpeed;
@@ -177,6 +178,7 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+            _attackTimeoutDelta = JumpTimeout;
         }
 
         private void Update()
@@ -188,11 +190,16 @@ namespace StarterAssets
                 // 캐릭터의 입력 처리
                 // 예를 들어 이동, 점프, 공격 등의 입력을 처리합니다.
                 GroundedCheck();
-                Move();
+                
                 JumpAndGravity();
                 Attack();
                 Block();
                 ChargeAttack();
+                if(_canMove)
+                {
+                    Move();
+                }
+
             }
         }
 
@@ -233,66 +240,61 @@ namespace StarterAssets
 
         private void CameraRotation()
         {
-            // if there is an input and camera position is not fixed
+            // 입력이 있고 카메라 위치가 고정되지 않았을 때
             if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
             {
-                //Don't multiply mouse input by Time.deltaTime;
+                // 마우스 입력에 Time.deltaTime을 곱하지 않습니다.
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
-                // deltatime을 곱하는 이유는 게임의 상황과 관계없이 일정한 성능을 낼 수 있도록 한다. 게임의 속도가 빠르면 deltatime은 작아지고 게임의 속도가 느려지면 deltatime은 커지기 때문에 이를 곱하면 일정한 속도를 낼 수 있다.
-                
+
+                // 마우스 입력 값에 deltaTimeMultiplier를 곱합니다.
                 float mouseX = _input.look.x * deltaTimeMultiplier;
                 float mouseY = _input.look.y * deltaTimeMultiplier;
-                
 
-                if(!isAiming)
-                {
-                    _cinemachineTargetYaw += mouseX;
-                    _cinemachineTargetPitch += mouseY;
-                }
-                else
-                {
-                    _cinemachineTargetYaw = transform.eulerAngles.y;
-                    _cinemachineTargetPitch = 0; // 수평 회전만 유지
-                }
-
+                // Yaw와 Pitch 값을 업데이트합니다.
+                _cinemachineTargetYaw += mouseX;
+                _cinemachineTargetPitch += mouseY;
             }
 
-            // clamp our rotations so our values are limited 360 degrees
+            
+
+            // 에임 상태일 때는 카메라의 회전을 자유롭게 설정합니다.
+            if (isAiming)
+            {
+                // 카메라의 회전만 변경하는 것이 아니라 캐릭터의 회전도 함께 변경합니다.
+                Quaternion targetRotation = Quaternion.Euler(_cinemachineTargetPitch, _cinemachineTargetYaw, 0f);
+                CinemachineCameraTarget.transform.rotation = targetRotation;
+                transform.rotation = Quaternion.Euler(0f, _cinemachineTargetYaw, 0f); // Yaw값만 사용하여 캐릭터를 회전합니다.
+            }
+
+            // 회전 값을 360도 범위로 제한합니다.
             _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
             _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
-            // Cinemachine will follow this target
+            // Cinemachine이 이 타겟을 따라가도록 회전 값을 설정합니다.
             CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
                 _cinemachineTargetYaw, 0.0f);
+
         }
+
 
         private void Move()
         {
-            // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
-            // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
+            if (_input.move == Vector2.zero)
+            {
+                targetSpeed = 0.0f;
+            }
 
-            // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is no input, set the target speed to 0
-            if (_input.move == Vector2.zero) targetSpeed = 0.0f;
-
-            // a reference to the players current horizontal velocity
             float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
-
             float speedOffset = 0.1f;
             float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
-            // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset ||
                 currentHorizontalSpeed > targetSpeed + speedOffset)
             {
-                // creates curved result rather than a linear one giving a more organic speed change
-                // note T in Lerp is clamped, so we don't need to clamp our speed
                 _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
                     Time.deltaTime * SpeedChangeRate);
-
-                // round speed to 3 decimal places
                 _speed = Mathf.Round(_speed * 1000f) / 1000f;
             }
             else
@@ -303,36 +305,50 @@ namespace StarterAssets
             _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
-            // normalise input direction
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
-            // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is a move input rotate player when the player is moving
-            if (_input.move != Vector2.zero)
+            if (!isAiming && _input.move != Vector2.zero)
             {
                 _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                                   _mainCamera.transform.eulerAngles.y;
-                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
-                    RotationSmoothTime);
-
-                // rotate to face input direction relative to camera position
-                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
+            float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
+                RotationSmoothTime);
+            
 
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-            // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
+            Vector3 moveDirection = Vector3.zero;
+            if (!isAiming && _input.move != Vector2.zero)
+            {
+                moveDirection = targetDirection;
+                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+            }
+            else if (isAiming && _input.move != Vector2.zero)
+            {
+                moveDirection = _input.move.x * transform.right + _input.move.y * transform.forward;
+            }
+
+            _controller.Move(moveDirection.normalized * (_speed * Time.deltaTime) +
                              new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
-            // update animator if using character
             if (_hasAnimator)
             {
-                _animator.SetFloat(_animIDSpeed, _animationBlend);
+                if (!isAiming)
+                {
+                    _animator.SetFloat(_animIDSpeed, _animationBlend);
+                }
+                else
+                {
+                    _input.sprint = false;
+                    _animator.SetFloat(_animIDSpeed, _animationBlend * 0.5f); // 예시로 0.5를 곱하여 값을 조정할 수 있습니다.
+                }
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
             }
         }
+
+
 
         private void JumpAndGravity()
         {
@@ -452,21 +468,28 @@ namespace StarterAssets
             if (!Grounded)
             {
                 _input.attack = false;
+                _attackTimeoutDelta = JumpTimeout;
                 
             }
 
             if (_input.attack && _canMove)
             {
+                _input.attack = false;
+                Debug.Log("Attacked");
                 _isAttacking = true;
                 _canMove = false;
-                _input.move = Vector2.zero;
+                
 
                 if (_animator)
                 {
+                    
                     _animator.SetTrigger(_animIDAttack);
                     StartCoroutine(ActivateAttackObjectCoroutine());
                 }
             }
+            
+
+
         }
 
         private void ChargeAttack()
@@ -479,11 +502,22 @@ namespace StarterAssets
             if (_input.hold && _canMove)
             {
                 _isAttacking = true;
-                _canMove = false;
-                _input.move = Vector2.zero;
+                //_canMove = false;
+                
 
                 if (_animator)
                 {
+
+                    if(!_animator.GetBool("usingSword"))
+                    {
+                        //flag 함수
+                        isAiming = true;
+                    }
+                    else
+                    {
+                        _canMove = false;
+                    }
+
                     _animator.SetBool(_animIDHold, true);
                 }
             }
@@ -491,6 +525,7 @@ namespace StarterAssets
             if (_input.holdout && _animator.GetBool(_animIDHold))
             {
                 _animator.SetBool(_animIDHold, false);
+                isAiming = false;
                 _canMove = true;
             }
         }
@@ -538,16 +573,12 @@ namespace StarterAssets
 
         IEnumerator ActivateAttackObjectCoroutine()
         {
-            // 애니메이션이 재생되는 동안 Attack Object 활성화
-            //_attackObject.SetActive(true);
             
-
 
             // 애니메이션이 끝날 때까지 대기
             yield return new WaitForSeconds(0.5f);
 
-            // 애니메이션이 끝나면 Attack Object 비활성화
-            //_attackObject.SetActive(false);
+            
             
 
             // 공격 상태 초기화
@@ -556,7 +587,7 @@ namespace StarterAssets
             
             //_animator.SetBool(_animIDAttack, false);
             //_animator.SetInteger(_animIDAttack, 0);
-            _input.attack = false;
+            //_input.attack = false;
 
         }
 

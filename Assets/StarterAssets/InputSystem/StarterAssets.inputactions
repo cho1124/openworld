@@ -6,6 +6,15 @@
             "id": "f62a4b92-ef5e-4175-8f4c-c9075429d32c",
             "actions": [
                 {
+                    "name": "Attack",
+                    "type": "Button",
+                    "id": "5a864c99-f4d0-43e3-baf9-7a58e2472188",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Move",
                     "type": "Value",
                     "id": "6bc1aaf4-b110-4ff7-891e-5b9fe6f32c4d",
@@ -37,15 +46,6 @@
                     "type": "PassThrough",
                     "id": "980e881e-182c-404c-8cbf-3d09fdb48fef",
                     "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Attack",
-                    "type": "Button",
-                    "id": "5a864c99-f4d0-43e3-baf9-7a58e2472188",
-                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -228,7 +228,7 @@
                     "name": "",
                     "id": "dc65b89f-9bd3-43fb-92af-d0d87ba5faa4",
                     "path": "<Keyboard>/leftShift",
-                    "interactions": "",
+                    "interactions": "Press",
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Sprint",
@@ -243,17 +243,6 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "Sprint",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e5397b7e-7f78-44be-a280-bd8369774de1",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "Hold,Press(pressPoint=0.5,behavior=1)",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -276,6 +265,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "test",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e5397b7e-7f78-44be-a280-bd8369774de1",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Tap(pressPoint=0.2),Hold(duration=0.1,pressPoint=0.1)",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
