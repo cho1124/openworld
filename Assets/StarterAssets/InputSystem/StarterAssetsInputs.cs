@@ -8,26 +8,26 @@ using static UnityEngine.Rendering.DebugUI;
 
 namespace StarterAssets
 {
-	public class StarterAssetsInputs : MonoBehaviour
-	{
-		[Header("Character Input Values")]
-		public Vector2 move;
-		public Vector2 look;
-		public bool jump;
-		public bool sprint;
-		public bool attack;
-		public bool hold;
-		public bool holdout;
-		public bool defense;
+    public class StarterAssetsInputs : MonoBehaviour
+    {
+        [Header("Character Input Values")]
+        public Vector2 move;
+        public Vector2 look;
+        public bool jump;
+        public bool sprint;
+        public bool attack;
+        public bool hold;
+        public bool holdout;
+        public bool defense;
 
 
 
-		[Header("Movement Settings")]
-		public bool analogMovement;
+        [Header("Movement Settings")]
+        public bool analogMovement;
 
-		[Header("Mouse Cursor Settings")]
-		public bool cursorLocked = true;
-		public bool cursorInputForLook = true;
+        [Header("Mouse Cursor Settings")]
+        public bool cursorLocked = true;
+        public bool cursorInputForLook = true;
 
         private bool holding = false;
         private float holdTimeThreshold = 1.5f; // 홀드로 간주할 최소 시간 (예시로 0.5초)
@@ -41,7 +41,7 @@ namespace StarterAssets
 
         public void OnLook(InputAction.CallbackContext context)
         {
-            
+
             if (cursorInputForLook)
             {
                 LookInput(context.ReadValue<Vector2>());
@@ -49,14 +49,14 @@ namespace StarterAssets
         }
 
         public void OnJump(InputAction.CallbackContext context)
-		{
-			JumpInput(context.performed);
-		}
+        {
+            JumpInput(context.performed);
+        }
 
-		public void OnSprint(InputAction.CallbackContext context)
-		{
-			SprintInput(context.performed);
-		}
+        public void OnSprint(InputAction.CallbackContext context)
+        {
+            SprintInput(context.performed);
+        }
 
 
 
@@ -91,10 +91,10 @@ namespace StarterAssets
                 {
                     Debug.Log("Pressed");
                     AttackInput(true); // Pressed 상태
-					//여기서 문제 발생, context
+                                       //여기서 문제 발생, context
                 }
 
-				
+
 
             }
             else if (context.canceled)
@@ -109,7 +109,7 @@ namespace StarterAssets
                 {
                     Debug.Log("Pressed ended");
                     // Pressed가 해제됨을 나타내는 로그 출력 등 추가 처리
-                    
+
                 }
             }
         }
@@ -134,58 +134,58 @@ namespace StarterAssets
 
 
         public void MoveInput(Vector2 newMoveDirection)
-		{
-			move = newMoveDirection;
+        {
+            move = newMoveDirection;
 
-            
 
-		} 
 
-		public void LookInput(Vector2 newLookDirection)
-		{
-			look = newLookDirection;
-		}
+        }
 
-		public void JumpInput(bool newJumpState)
-		{
-			jump = newJumpState;
-		}
+        public void LookInput(Vector2 newLookDirection)
+        {
+            look = newLookDirection;
+        }
 
-		public void SprintInput(bool newSprintState)
-		{
-			sprint = newSprintState;
-		}
+        public void JumpInput(bool newJumpState)
+        {
+            jump = newJumpState;
+        }
 
-		public void AttackInput(bool newAttackState)
-		{
-			attack = newAttackState;
+        public void SprintInput(bool newSprintState)
+        {
+            sprint = newSprintState;
+        }
 
-		}
+        public void AttackInput(bool newAttackState)
+        {
+            attack = newAttackState;
 
-		public void HoldInput(bool newHoldState)
-		{
-			hold = newHoldState;
-		}
+        }
 
-		public void HoldOut(bool newOutState)
-		{
-			holdout = newOutState;
-		}
+        public void HoldInput(bool newHoldState)
+        {
+            hold = newHoldState;
+        }
 
-		public void DefenceInput(bool newDefenceState)
-		{
-			defense = newDefenceState;
-		}
+        public void HoldOut(bool newOutState)
+        {
+            holdout = newOutState;
+        }
 
-		private void OnApplicationFocus(bool hasFocus)
-		{
-			SetCursorState(cursorLocked);
-		}
+        public void DefenceInput(bool newDefenceState)
+        {
+            defense = newDefenceState;
+        }
 
-		private void SetCursorState(bool newState)
-		{
-			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
-		}
-	}
-	
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            SetCursorState(cursorLocked);
+        }
+
+        private void SetCursorState(bool newState)
+        {
+            Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
+        }
+    }
+
 }

@@ -6,15 +6,6 @@
             "id": "f62a4b92-ef5e-4175-8f4c-c9075429d32c",
             "actions": [
                 {
-                    "name": "Attack",
-                    "type": "Button",
-                    "id": "5a864c99-f4d0-43e3-baf9-7a58e2472188",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Move",
                     "type": "Value",
                     "id": "6bc1aaf4-b110-4ff7-891e-5b9fe6f32c4d",
@@ -51,18 +42,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Defence",
+                    "name": "Attack",
                     "type": "Button",
-                    "id": "8f883981-27bc-415b-a4b8-969faf7a3700",
+                    "id": "0cf4c758-fbf2-4ab4-a4f8-5807a8bb839c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
                 },
                 {
-                    "name": "test",
+                    "name": "Defence",
                     "type": "Button",
-                    "id": "3e6ec46a-e02e-4677-8733-9e53d15cf3fd",
+                    "id": "fc81cd8a-93ad-4e05-ad0f-0ed38249491a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -248,34 +239,23 @@
                 },
                 {
                     "name": "",
-                    "id": "57b6b91e-29f1-41eb-9e65-5fc9e927e1a0",
-                    "path": "<Mouse>/rightButton",
-                    "interactions": "Press(behavior=2)",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "Defence",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "65cf2f4f-1983-43c9-9d16-17ed2570eec8",
-                    "path": "<Keyboard>/#(R)",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "test",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e5397b7e-7f78-44be-a280-bd8369774de1",
+                    "id": "f4d4bb70-e1b9-40d7-9a88-ec12441aac91",
                     "path": "<Mouse>/leftButton",
-                    "interactions": "Tap(pressPoint=0.2),Hold(duration=0.1,pressPoint=0.1)",
+                    "interactions": "Hold(duration=0.2,pressPoint=0.2),Press(behavior=1)",
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "14fcf0b4-3128-4157-94fd-28b1f7269ebb",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Defence",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

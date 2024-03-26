@@ -84,10 +84,12 @@ namespace StarterAssets
         // player
         private float _speed;
         private float _animationBlend;
+        private float _animationBlendLR;
         private float _targetRotation = 0.0f;
         private float _rotationVelocity;
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
+        public Transform armTransform;
 
         // timeout deltatime
         private float _jumpTimeoutDelta;
@@ -110,6 +112,7 @@ namespace StarterAssets
         private PlayerInput _playerInput;
 #endif
         private Animator _animator;
+        public Animator childAnimator;
         private CharacterController _controller;
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
@@ -264,11 +267,16 @@ namespace StarterAssets
                 Quaternion targetRotation = Quaternion.Euler(_cinemachineTargetPitch, _cinemachineTargetYaw, 0f);
                 CinemachineCameraTarget.transform.rotation = targetRotation;
                 transform.rotation = Quaternion.Euler(0f, _cinemachineTargetYaw, 0f); // Yaw값만 사용하여 캐릭터를 회전합니다.
+                armTransform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, armTransform.localEulerAngles.y, armTransform.localEulerAngles.z);
+
+
             }
 
             // 회전 값을 360도 범위로 제한합니다.
             _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
             _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
+
+            
 
             // Cinemachine이 이 타겟을 따라가도록 회전 값을 설정합니다.
             CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
@@ -304,6 +312,9 @@ namespace StarterAssets
 
             _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
+
+            _animationBlendLR = Mathf.Lerp(_animationBlendLR, targetSpeed, Time.deltaTime * SpeedChangeRate);
+            if (_animationBlendLR < 0.01f) _animationBlend = 0f;
 
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
@@ -341,8 +352,47 @@ namespace StarterAssets
                 }
                 else
                 {
+                    
+
                     _input.sprint = false;
-                    _animator.SetFloat(_animIDSpeed, _animationBlend * 0.5f); // 예시로 0.5를 곱하여 값을 조정할 수 있습니다.
+
+                    // 조준 상태에서 키 입력에 따라 애니메이션 속도 설정
+                    if (_input.move.x > 0)
+                    {
+                        _animator.SetFloat(_animIDSpeed, _animationBlend * 0.5f);
+
+                    }
+                    else if (_input.move.x < 0)
+                    {
+                        _animator.SetFloat(_animIDSpeed, -_animationBlend * 0.5f);
+                    }
+                    else
+                    {
+                        if(_input.move.y == 0)
+                        {
+                            _animator.SetFloat(_animIDSpeed, _animationBlend);
+                        }
+
+                        
+                    }
+                    
+
+                    if (_input.move.y > 0)
+                    {
+                        _animator.SetFloat("SpeedLR", _animationBlendLR * 0.5f);
+                    }
+                    else if (_input.move.y < 0)
+                    {
+                        _animator.SetFloat("SpeedLR", -_animationBlendLR * 0.5f);
+                    }
+                    else
+                    {
+                        if (_input.move.x == 0)
+                        {
+                            _animator.SetFloat("SpeedLR", _animationBlend);
+                        }
+                    }
+                   
                 }
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
             }
@@ -508,10 +558,12 @@ namespace StarterAssets
                 if (_animator)
                 {
 
-                    if(!_animator.GetBool("usingSword"))
+                    if(!_animator.GetBool("UseSword"))
                     {
                         //flag 함수
                         isAiming = true;
+                        childAnimator.SetBool("Draw", true);
+
                     }
                     else
                     {
@@ -519,13 +571,22 @@ namespace StarterAssets
                     }
 
                     _animator.SetBool(_animIDHold, true);
+                    
                 }
             }
 
             if (_input.holdout && _animator.GetBool(_animIDHold))
             {
+                if(!_animator.GetBool("UseSword"))
+                {
+                    isAiming = false;
+                    childAnimator.SetBool("Draw", false);
+                }
+
+
                 _animator.SetBool(_animIDHold, false);
-                isAiming = false;
+                
+                
                 _canMove = true;
             }
         }
@@ -568,7 +629,31 @@ namespace StarterAssets
             attackCollider.enabled = false;
         }
 
-        private
+        private void shootStart()
+        {
+            _animator.SetBool("Shoot", true);
+        }
+
+        private void shootEnd()
+        {
+            _animator.SetBool("Shoot", false);
+        }
+
+        private void bowPull()
+        {
+            childAnimator.SetTrigger("Draw");
+        }
+
+        private void bowOverDraw()
+        {
+
+        }
+
+        private void bowRelease()
+        {
+            childAnimator.SetTrigger("Release");
+        }
+
 
 
         IEnumerator ActivateAttackObjectCoroutine()
@@ -582,7 +667,13 @@ namespace StarterAssets
             
 
             // 공격 상태 초기화
-            _isAttacking = false;
+
+            
+                _isAttacking = false;
+                isAiming = false;
+            
+
+            
             _canMove = true;
             
             //_animator.SetBool(_animIDAttack, false);
