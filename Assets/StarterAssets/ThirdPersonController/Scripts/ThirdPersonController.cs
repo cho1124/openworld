@@ -252,6 +252,7 @@ namespace StarterAssets
                 // 마우스 입력 값에 deltaTimeMultiplier를 곱합니다.
                 float mouseX = _input.look.x * deltaTimeMultiplier;
                 float mouseY = _input.look.y * deltaTimeMultiplier;
+                
 
                 // Yaw와 Pitch 값을 업데이트합니다.
                 _cinemachineTargetYaw += mouseX;
@@ -295,6 +296,9 @@ namespace StarterAssets
             }
 
             float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
+
+            
+
             float speedOffset = 0.1f;
             float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
@@ -356,43 +360,23 @@ namespace StarterAssets
 
                     _input.sprint = false;
 
-                    // 조준 상태에서 키 입력에 따라 애니메이션 속도 설정
-                    if (_input.move.x > 0)
-                    {
-                        _animator.SetFloat(_animIDSpeed, _animationBlend * 0.5f);
-
-                    }
-                    else if (_input.move.x < 0)
-                    {
-                        _animator.SetFloat(_animIDSpeed, -_animationBlend * 0.5f);
-                    }
-                    else
-                    {
-                        if(_input.move.y == 0)
-                        {
-                            _animator.SetFloat(_animIDSpeed, _animationBlend);
-                        }
-
-                        
-                    }
+                    // 이동 방향 벡터
                     
 
-                    if (_input.move.y > 0)
-                    {
-                        _animator.SetFloat("SpeedLR", _animationBlendLR * 0.5f);
-                    }
-                    else if (_input.move.y < 0)
-                    {
-                        _animator.SetFloat("SpeedLR", -_animationBlendLR * 0.5f);
-                    }
-                    else
-                    {
-                        if (_input.move.x == 0)
-                        {
-                            _animator.SetFloat("SpeedLR", _animationBlend);
-                        }
-                    }
-                   
+                    // 이동 방향 벡터의 크기를 가져옵니다
+                    float moveMagnitude = _input.move.magnitude;
+
+                    // 이동 방향 벡터가 없는 경우를 고려하여 분모를 0으로 만들지 않습니다.
+                    float speedX = (moveMagnitude != 0) ? (_animationBlend * 0.5f * _input.move.x ) : _animationBlend * 0.5f;
+                    float speedY = (moveMagnitude != 0) ? (_animationBlendLR * 0.5f * _input.move.y ) : _animationBlendLR * 0.5f;
+
+                    // 애니메이터에 속도값을 설정합니다.
+                    _animator.SetFloat(_animIDSpeed, speedX);
+                    _animator.SetFloat("SpeedLR", speedY);
+
+
+
+
                 }
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
             }
