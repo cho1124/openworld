@@ -102,6 +102,7 @@ namespace StarterAssets
                 if (context.interaction is HoldInteraction)
                 {
                     //Debug.Log("Hold ended");
+                    HoldInput(false);
                     holdout = true;
                     holding = false;
                 }

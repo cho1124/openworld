@@ -124,6 +124,7 @@ namespace StarterAssets
         private bool _hasAnimator;
         private bool _isAttacking;
         private bool isAiming = false;
+        private bool holdSuccessed = false;
         public float _attackCooldown = 1.0f; // 콤보를 유지할 시간
         public int maxComboCount = 3; // 최대 콤보 횟수
 
@@ -134,6 +135,11 @@ namespace StarterAssets
         private bool holdTimerStarted = false;
         private float holdTimer = 0f;
         private float holdTimeThreshold = 1.0f; // 홀드가 활성화되는 시간(예: 1초)
+
+        public bool ikActive = false;
+        public Transform rightHandObj = null;
+        public Transform lookObj = null;
+
 
         private bool IsCurrentDeviceMouse
         {
@@ -198,7 +204,10 @@ namespace StarterAssets
                 Attack();
                 Block();
                 ChargeAttack();
-                if(_canMove)
+
+             
+
+                if (_canMove)
                 {
                     Move();
                 }
@@ -268,10 +277,11 @@ namespace StarterAssets
                 Quaternion targetRotation = Quaternion.Euler(_cinemachineTargetPitch, _cinemachineTargetYaw, 0f);
                 CinemachineCameraTarget.transform.rotation = targetRotation;
                 transform.rotation = Quaternion.Euler(0f, _cinemachineTargetYaw, 0f); // Yaw값만 사용하여 캐릭터를 회전합니다.
-                armTransform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, armTransform.localEulerAngles.y, armTransform.localEulerAngles.z);
+                armTransform.localRotation = Quaternion.Euler(armTransform.localEulerAngles.x, armTransform.localEulerAngles.y, _cinemachineTargetPitch);
 
 
             }
+
 
             // 회전 값을 360도 범위로 제한합니다.
             _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
@@ -528,6 +538,8 @@ namespace StarterAssets
 
         private void ChargeAttack()
         {
+            AnimatorStateInfo currentState = _animator.GetCurrentAnimatorStateInfo(5);
+
             if (!Grounded)
             {
                 _input.hold = false;
@@ -537,16 +549,17 @@ namespace StarterAssets
             {
                 _isAttacking = true;
                 //_canMove = false;
-                
+
 
                 if (_animator)
                 {
-
-                    if(!_animator.GetBool("UseSword"))
+                    
+                    if (!_animator.GetBool("UseSword"))
                     {
                         //flag 함수
                         isAiming = true;
-                        childAnimator.SetBool("Draw", true);
+                        //childAnimator.SetBool("Draw", true);
+                        
 
                     }
                     else
@@ -555,25 +568,73 @@ namespace StarterAssets
                     }
 
                     _animator.SetBool(_animIDHold, true);
+                    _animator.SetBool("AimHold", true);
+
+
+                }
+            }
+
+            if (!_input.hold && _animator.GetBool(_animIDHold))
+            {
+                if (!_animator.GetBool("UseSword"))
+                {
+                    //isAiming = false;
+
+                    if(!currentState.IsName("AimOverdraw"))
+                    {
+                        isAiming = false;
+                    }
+
+                    childAnimator.SetBool("Draw", false);
+                    
                     
                 }
-            }
-
-            if (_input.holdout && _animator.GetBool(_animIDHold))
-            {
-                if(!_animator.GetBool("UseSword"))
-                {
-                    isAiming = false;
-                    childAnimator.SetBool("Draw", false);
-                }
 
 
-                _animator.SetBool(_animIDHold, false);
                 
+                _animator.SetBool(_animIDHold, false);
+
+                
+                _animator.SetBool("AimHold", false);
+                
+
                 
                 _canMove = true;
+                
+
+                
             }
         }
+
+        void AimingRelease()
+        {
+            isAiming = false;
+        }
+
+        
+
+        private void OnAnimatorIK()
+        {
+            if (_animator)
+            {
+                if (!_animator.GetBool("UseSword") && _input.hold)
+                {
+                    _animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
+                    _animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
+                    _animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
+                    _animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
+                }
+                if (!_animator.GetBool(_animIDHold))
+                {
+                    if (!_animator.GetBool("UseSword"))
+                    {
+                        _animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+                        _animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+                    }
+                }
+            }
+        }
+
 
 
 
@@ -625,17 +686,17 @@ namespace StarterAssets
 
         private void bowPull()
         {
-            childAnimator.SetTrigger("Draw");
+            childAnimator.SetBool("Draw", true);
         }
 
         private void bowOverDraw()
         {
-
+            childAnimator.SetBool("Draw", true);
         }
 
         private void bowRelease()
         {
-            childAnimator.SetTrigger("Release");
+            childAnimator.SetBool("Draw", false);
         }
 
 
