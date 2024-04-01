@@ -133,12 +133,17 @@ namespace StarterAssets
 
         private bool _canMove = true; // 공격중이거나, 방어중일 때 움직임 값을 받지 않도록 함
         private bool holdTimerStarted = false;
+        private bool arrowSpawned = false;
         private float holdTimer = 0f;
         private float holdTimeThreshold = 1.0f; // 홀드가 활성화되는 시간(예: 1초)
+        private Rigidbody arrowRigidbody;
 
         public bool ikActive = false;
         public Transform rightHandObj = null;
         public Transform lookObj = null;
+        public GameObject ArrowObj = null;
+        private GameObject arrow = null;
+        public GameObject arrowEffect = null;
 
 
         private bool IsCurrentDeviceMouse
@@ -279,7 +284,7 @@ namespace StarterAssets
                 transform.rotation = Quaternion.Euler(0f, _cinemachineTargetYaw, 0f); // Yaw값만 사용하여 캐릭터를 회전합니다.
                 armTransform.localRotation = Quaternion.Euler(armTransform.localEulerAngles.x, armTransform.localEulerAngles.y, _cinemachineTargetPitch);
 
-
+                
             }
 
 
@@ -539,7 +544,7 @@ namespace StarterAssets
         private void ChargeAttack()
         {
             AnimatorStateInfo currentState = _animator.GetCurrentAnimatorStateInfo(5);
-
+            
             if (!Grounded)
             {
                 _input.hold = false;
@@ -559,7 +564,24 @@ namespace StarterAssets
                         //flag 함수
                         isAiming = true;
                         //childAnimator.SetBool("Draw", true);
-                        
+
+                        if(!arrowSpawned)
+                        {
+                            arrow = Instantiate(ArrowObj, rightHandObj.position, rightHandObj.rotation);
+                            
+                            arrow.transform.SetParent(rightHandObj.transform);
+                            arrowSpawned = true;
+                            
+                            //arrowTrailEffect.Stop();
+                            arrowRigidbody = arrow.GetComponent<Rigidbody>();
+                            
+                            if (arrowRigidbody == null)
+                            {
+                                arrowRigidbody = arrow.AddComponent<Rigidbody>();
+                            }
+                            arrowRigidbody.isKinematic = true;
+
+                        }
 
                     }
                     else
@@ -583,11 +605,13 @@ namespace StarterAssets
                     if(!currentState.IsName("AimOverdraw"))
                     {
                         isAiming = false;
+                        Destroy(arrow);
                     }
 
                     childAnimator.SetBool("Draw", false);
-                    
-                    
+                    arrowSpawned = false;
+
+
                 }
 
 
@@ -596,15 +620,58 @@ namespace StarterAssets
 
                 
                 _animator.SetBool("AimHold", false);
-                
+                if (currentState.IsName("AimOverdraw") && arrow != null)
+                {
+                    arrow.transform.SetParent(null); // 홀드를 놓을 때 화살의 부모를 해제합니다.
+                    if (arrowRigidbody != null)
+                    {
+                        arrowRigidbody.isKinematic = false;
+                    }
+                    ShootArrow();
+                }
 
-                
+
+
                 _canMove = true;
                 
 
                 
             }
         }
+
+        private void ShootArrow()
+        {
+            if (arrowRigidbody != null)
+            {
+                // 애니메이션의 진행률을 얻어옵니다.
+                float animationProgress = _animator.GetCurrentAnimatorStateInfo(5).normalizedTime;
+
+                // 화살에 가해질 초기 힘의 크기를 설정합니다.
+                float initialForce = 10f;
+
+                // 애니메이션의 시간이 지날수록 힘의 크기를 증가시킵니다.
+                float finalForce = initialForce + (animationProgress * 10f); // 애니메이션의 진행률에 따라 힘의 증가율을 조절합니다.
+
+                // 화살을 발사합니다.
+                arrowRigidbody.AddForce(CinemachineCameraTarget.transform.forward * finalForce, ForceMode.Impulse);
+
+                // 화살의 위치를 기준으로 이펙트를 생성합니다.
+                GameObject effect = Instantiate(arrowEffect, transform.position, transform.rotation);
+
+                // 이펙트를 활성화시킵니다.
+                effect.SetActive(true);
+
+                // 화살과 이펙트를 연결합니다.
+                ArrowEffectFollow arrowEffectFollow = effect.GetComponent<ArrowEffectFollow>();
+                if (arrowEffectFollow != null)
+                {
+                    arrowEffectFollow.SetArrow(arrowRigidbody);
+                }
+            }
+        }
+
+
+
 
         void AimingRelease()
         {
