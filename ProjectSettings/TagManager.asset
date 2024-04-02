@@ -9,6 +9,7 @@ TagManager:
   - Sword
   - Dragon
   - Head
+  - Arrow
   layers:
   - Default
   - TransparentFX

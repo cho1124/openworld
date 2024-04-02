@@ -124,6 +124,7 @@ namespace StarterAssets
         private bool _hasAnimator;
         private bool _isAttacking;
         private bool isAiming = false;
+        public bool isClimbing = false;
         private bool holdSuccessed = false;
         public float _attackCooldown = 1.0f; // 콤보를 유지할 시간
         public int maxComboCount = 3; // 최대 콤보 횟수
@@ -132,10 +133,9 @@ namespace StarterAssets
         
 
         private bool _canMove = true; // 공격중이거나, 방어중일 때 움직임 값을 받지 않도록 함
-        private bool holdTimerStarted = false;
+        
         private bool arrowSpawned = false;
-        private float holdTimer = 0f;
-        private float holdTimeThreshold = 1.0f; // 홀드가 활성화되는 시간(예: 1초)
+        
         private Rigidbody arrowRigidbody;
 
         public bool ikActive = false;
@@ -397,6 +397,43 @@ namespace StarterAssets
             }
         }
 
+        private void WallMove()
+        {
+            // 이동 속도 설정
+            float targetSpeed = MoveSpeed * 0.5f;
+
+            // 만약 입력값이 없다면 목표 속도를 0으로 설정하여 정지 상태로 만듭니다.
+            if (_input.move == Vector2.zero)
+            {
+                targetSpeed = 0.0f;
+            }
+
+            // 현재 수평 속도를 계산합니다.
+            float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
+
+            // 이동 속도를 조절하기 위한 오프셋 값 설정
+            float speedOffset = 0.1f;
+
+            // 현재 속도가 목표 속도와 일정 범위 이내에 있는지 확인하여 조절합니다.
+            if (currentHorizontalSpeed < targetSpeed - speedOffset ||
+                currentHorizontalSpeed > targetSpeed + speedOffset)
+            {
+                // 현재 속도를 목표 속도로 서서히 변화시킵니다.
+                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed, Time.deltaTime * SpeedChangeRate);
+                _speed = Mathf.Round(_speed * 1000f) / 1000f;
+            }
+            else
+            {
+                // 현재 속도가 목표 속도와 일치하면 목표 속도를 유지합니다.
+                _speed = targetSpeed;
+            }
+
+            // 캐릭터를 이동시킵니다.
+            Vector3 moveDirection = transform.forward;
+            _controller.Move(moveDirection.normalized * (_speed * Time.deltaTime) +
+                             new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+        }
+
 
 
         private void JumpAndGravity()
@@ -625,6 +662,7 @@ namespace StarterAssets
                     arrow.transform.SetParent(null); // 홀드를 놓을 때 화살의 부모를 해제합니다.
                     if (arrowRigidbody != null)
                     {
+                        Debug.Log("Sasdsazx");
                         arrowRigidbody.isKinematic = false;
                     }
                     ShootArrow();
