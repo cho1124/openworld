@@ -1,16 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Arrow : MonoBehaviour
 {
     public int damage;
-
-    void Start()
-    {
-        // 화살이 처음 생성될 때 머리가 화살의 방향으로 향하도록 설정합니다.
-        //transform.up = GetComponent<Rigidbody>().velocity.normalized;
-    }
+    public GameObject effect;
 
     void Update()
     {
@@ -19,8 +16,25 @@ public class Arrow : MonoBehaviour
         if(!GetComponent<Rigidbody>().isKinematic)
         {
             transform.up = GetComponent<Rigidbody>().velocity.normalized;
+            
         }
 
         
+
+        
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Dragon"))
+        {
+            Instantiate(effect, transform.position, Quaternion.identity);
+            
+            Destroy(gameObject);
+            
+
+            //Debug.Log("headShot");
+
+        }
     }
 }

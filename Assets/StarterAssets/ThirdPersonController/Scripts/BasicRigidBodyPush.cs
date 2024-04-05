@@ -10,7 +10,23 @@ public class BasicRigidBodyPush : MonoBehaviour
 	
 	[Range(0.5f, 5f)] public float strength = 1.1f;
 
-	private void OnControllerColliderHit(ControllerColliderHit hit)
+
+    private ThirdPersonController thirdPersonController; // ThirdPersonController 컴포넌트에 대한 참조 변수
+
+    private void Start()
+    {
+        // Start 메서드에서 ThirdPersonController 컴포넌트에 대한 참조를 가져옵니다.
+        thirdPersonController = GetComponent<ThirdPersonController>();
+
+        // 만약 ThirdPersonController 컴포넌트가 없다면 에러를 출력합니다.
+        if (thirdPersonController == null)
+        {
+            Debug.LogError("ThirdPersonController 컴포넌트를 찾을 수 없습니다!");
+        }
+    }
+
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (canPush) PushRigidBodies(hit);
 
@@ -55,12 +71,15 @@ public class BasicRigidBodyPush : MonoBehaviour
             if (climbLayers == (climbLayers | (1 << objectLayer)))
             {
                 Debug.Log("Climbing");
-                // ThirdPersonController 스크립트에 접근하기 위한 참조를 가져옵니다.
-                ThirdPersonController thirdPersonController = GetComponent<ThirdPersonController>();
 
                 // isClimb 플래그를 true로 설정합니다.
-                thirdPersonController.isClimbing = true;
+                thirdPersonController.canClimb = true;
             }
+        }
+        else
+        {
+            // isClimb 플래그를 false로 설정합니다.
+            thirdPersonController.canClimb = false;
         }
     }
 

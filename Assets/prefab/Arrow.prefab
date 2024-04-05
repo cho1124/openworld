@@ -110,6 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 10
+  effect: {fileID: 6940152284228375839, guid: 1110dac540f8ae34997f62fb0dc4507c, type: 3}
 --- !u!1 &1544015595690379089
 GameObject:
   m_ObjectHideFlags: 0

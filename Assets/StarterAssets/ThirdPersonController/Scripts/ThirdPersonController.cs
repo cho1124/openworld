@@ -77,6 +77,8 @@ namespace StarterAssets
         [Tooltip("For locking the camera position on all axis")]
         public bool LockCameraPosition = false;
 
+
+        
         // cinemachine
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
@@ -122,9 +124,10 @@ namespace StarterAssets
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
-        private bool _isAttacking;
+        private bool _isAttacking = true;
         private bool isAiming = false;
-        public bool isClimbing = false;
+        public bool canClimb = false; // 벽을 탈 수 있는지 여부를 결정하는 플래그
+        public bool isClimbing = false; // 벽을 타는 상태를 나타내는 플래그
         private bool holdSuccessed = false;
         public float _attackCooldown = 1.0f; // 콤보를 유지할 시간
         public int maxComboCount = 3; // 최대 콤보 횟수
@@ -144,6 +147,11 @@ namespace StarterAssets
         public GameObject ArrowObj = null;
         private GameObject arrow = null;
         public GameObject arrowEffect = null;
+        public GameObject chargeEffect = null;
+        public GameObject AimLine = null;
+
+        [Range (0, 1f)]
+        public float DistanceToGround;
 
 
         private bool IsCurrentDeviceMouse
@@ -203,19 +211,28 @@ namespace StarterAssets
             {
                 // 캐릭터의 입력 처리
                 // 예를 들어 이동, 점프, 공격 등의 입력을 처리합니다.
-                GroundedCheck();
+
                 
-                JumpAndGravity();
-                Attack();
-                Block();
-                ChargeAttack();
+                if(!isClimbing)
+                {
+                    JumpAndGravity();
+                    Attack();
+                    Block();
+                    ChargeAttack();
+                    //무기체인지 함수도 이쪽으로 옮겨야함
+                    
+                }
 
-             
-
-                if (_canMove)
+                if(_canMove)
                 {
                     Move();
                 }
+
+
+
+                GroundedCheck();
+                
+
 
             }
         }
@@ -303,6 +320,31 @@ namespace StarterAssets
 
         private void Move()
         {
+            if (canClimb)
+            {
+                Debug.Log("you can Climb");
+                if (UnityEngine.Input.GetKeyDown(KeyCode.E))
+                {
+                    isClimbing = !isClimbing; // 현재 상태의 반대로 변경
+                }
+            }
+            else
+            {
+                isClimbing = false; // 벽을 탈 수 없는 상태이므로 isClimbing을 false로 설정
+            }
+
+            
+            if(!isAiming)
+            {
+                AimLine.SetActive(false);
+            }
+            else
+            {
+                AimLine.SetActive(true);
+            }
+
+
+
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
             if (_input.move == Vector2.zero)
@@ -363,6 +405,25 @@ namespace StarterAssets
             _controller.Move(moveDirection.normalized * (_speed * Time.deltaTime) +
                              new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
+
+            if (isClimbing)
+            {
+                if (_input.move.y > 0) // w를 누르면
+                {
+                    moveDirection = Vector3.forward; // 위로 이동
+                    Debug.Log("up");
+                }
+                else if (_input.move.y < 0) // s를 누르면
+                {
+                    moveDirection = -Vector3.forward; // 아래로 이동
+                    Debug.Log("down");
+                }
+
+                
+            }
+            //여기 부분에 대해서 isClimbing 플래그를 전체적인 부분에 씌워서 아예 따로 처리할 수 있도록 바꿀 예정
+
+
             if (_hasAnimator)
             {
                 if (!isAiming)
@@ -399,39 +460,17 @@ namespace StarterAssets
 
         private void WallMove()
         {
-            // 이동 속도 설정
-            float targetSpeed = MoveSpeed * 0.5f;
 
-            // 만약 입력값이 없다면 목표 속도를 0으로 설정하여 정지 상태로 만듭니다.
-            if (_input.move == Vector2.zero)
+            if(!canClimb || UnityEngine.Input.GetKeyDown(KeyCode.E))
             {
-                targetSpeed = 0.0f;
+                isClimbing = false;
+                
             }
 
-            // 현재 수평 속도를 계산합니다.
-            float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
-            // 이동 속도를 조절하기 위한 오프셋 값 설정
-            float speedOffset = 0.1f;
 
-            // 현재 속도가 목표 속도와 일정 범위 이내에 있는지 확인하여 조절합니다.
-            if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-                currentHorizontalSpeed > targetSpeed + speedOffset)
-            {
-                // 현재 속도를 목표 속도로 서서히 변화시킵니다.
-                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed, Time.deltaTime * SpeedChangeRate);
-                _speed = Mathf.Round(_speed * 1000f) / 1000f;
-            }
-            else
-            {
-                // 현재 속도가 목표 속도와 일치하면 목표 속도를 유지합니다.
-                _speed = targetSpeed;
-            }
 
-            // 캐릭터를 이동시킵니다.
-            Vector3 moveDirection = transform.forward;
-            _controller.Move(moveDirection.normalized * (_speed * Time.deltaTime) +
-                             new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            
         }
 
 
@@ -558,11 +597,16 @@ namespace StarterAssets
                 
             }
 
-            if (_input.attack && _canMove)
+            if(!_isAttacking)
             {
                 _input.attack = false;
+            }
+
+            if (_input.attack && _canMove)
+            {
+                
                 Debug.Log("Attacked");
-                _isAttacking = true;
+                
                 _canMove = false;
                 
 
@@ -587,20 +631,24 @@ namespace StarterAssets
                 _input.hold = false;
             }
 
-            if (_input.hold && _canMove)
+            
+
+            
+            if (_input.hold && _canMove) //칼과 활의 강공
             {
-                _isAttacking = true;
+                
                 //_canMove = false;
 
 
                 if (_animator)
                 {
                     
-                    if (!_animator.GetBool("UseSword"))
+                    if (!_animator.GetBool("UseSword")) //활 사용할 때의 강공
                     {
+                        childAnimator.SetBool("Draw", _animator.GetBool(_animIDHold));
                         //flag 함수
                         isAiming = true;
-                        //childAnimator.SetBool("Draw", true);
+                        //childAnimator.SetBool("Draw", true); //활 당기기
 
                         if(!arrowSpawned)
                         {
@@ -624,6 +672,7 @@ namespace StarterAssets
                     else
                     {
                         _canMove = false;
+                        
                     }
 
                     _animator.SetBool(_animIDHold, true);
@@ -633,7 +682,7 @@ namespace StarterAssets
                 }
             }
 
-            if (!_input.hold && _animator.GetBool(_animIDHold))
+            if (!_input.hold && _animator.GetBool(_animIDHold)) //홀드를 놓을 때
             {
                 if (!_animator.GetBool("UseSword"))
                 {
@@ -643,19 +692,22 @@ namespace StarterAssets
                     {
                         isAiming = false;
                         Destroy(arrow);
+                        
+                        
                     }
 
-                    childAnimator.SetBool("Draw", false);
+                    
                     arrowSpawned = false;
-
+                    //childAnimator.SetBool("Draw", false);
 
                 }
 
 
                 
                 _animator.SetBool(_animIDHold, false);
-
                 
+
+
                 _animator.SetBool("AimHold", false);
                 if (currentState.IsName("AimOverdraw") && arrow != null)
                 {
@@ -665,6 +717,7 @@ namespace StarterAssets
                         Debug.Log("Sasdsazx");
                         arrowRigidbody.isKinematic = false;
                     }
+                    //childAnimator.SetBool("Draw", false);
                     ShootArrow();
                 }
 
@@ -688,7 +741,7 @@ namespace StarterAssets
                 float initialForce = 10f;
 
                 // 애니메이션의 시간이 지날수록 힘의 크기를 증가시킵니다.
-                float finalForce = initialForce + (animationProgress * 10f); // 애니메이션의 진행률에 따라 힘의 증가율을 조절합니다.
+                float finalForce = initialForce + (animationProgress * 20f); // 애니메이션의 진행률에 따라 힘의 증가율을 조절합니다.
 
                 // 화살을 발사합니다.
                 arrowRigidbody.AddForce(CinemachineCameraTarget.transform.forward * finalForce, ForceMode.Impulse);
@@ -716,25 +769,81 @@ namespace StarterAssets
             isAiming = false;
         }
 
-        
+        void chargedMessage()
+        {
+            Debug.Log("Charged!");
+        }
+        void attacklock()
+        {
+            StartCoroutine(AttackLock());
+
+            
+            
+        }
+
+        IEnumerator AttackLock()
+        {
+            _isAttacking = false;
+
+            yield return new WaitForSeconds(0.3f); // 일정 시간 동안 대기
+
+            _isAttacking = true;
+        }
+
+
 
         private void OnAnimatorIK()
         {
             if (_animator)
             {
-                if (!_animator.GetBool("UseSword") && _input.hold)
+                // Left Foot
+                // Position 과 Rotation weight 설정
+                _animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1);
+                _animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 1);
+
+                
+
+                ///<summary>
+                /// GetIKPosition 
+                ///   => IK를 하려는 객체의 위치 값 ( 아래에선 아바타에서 LeftFoot에 해당하는 객체의 위치 값 )
+                /// Vector3.up을 더한 이유 
+                ///   => origin의 위치를 위로 올려 바닥에 겹쳐 바닥을 인식 못하는 걸 방지하기 위해
+                ///      (LeftFoot이 발목 정도에 있기 때문에 발바닥과 어느 정도 거리가 있고, Vector3.up을 더해주지 않으면 발목 기준으로 처리가 되어 발 일부가 바닥에 들어간다.)
+                ///</summary>
+                Ray leftRay = new Ray(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up, Vector3.down);
+
+                // distanceGround: LeftFoot에서 땅까지의 거리
+                // +1을 해준 이유: Vector3.up을 해주었기 때문
+                if (Physics.Raycast(leftRay, out RaycastHit leftHit, DistanceToGround + 1f, GroundLayers))
                 {
-                    _animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
-                    _animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
-                    _animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
-                    _animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
-                }
-                if (!_animator.GetBool(_animIDHold))
-                {
-                    if (!_animator.GetBool("UseSword"))
+                    // 걸을 수 있는 땅이라면
+                    if (leftHit.transform.tag == "WalkableGround")
                     {
-                        _animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
-                        _animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+                        Vector3 footPosition = leftHit.point;
+                        footPosition.y += DistanceToGround;
+
+                        _animator.SetIKPosition(AvatarIKGoal.LeftFoot, footPosition);
+                        _animator.SetIKRotation(AvatarIKGoal.LeftFoot, Quaternion.LookRotation(transform.forward, leftHit.normal));
+                    }
+                }
+
+                
+
+                // Right Foot
+                _animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1);
+                _animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1);
+
+                Ray rightRay = new Ray(_animator.GetIKPosition(AvatarIKGoal.RightFoot) + Vector3.up, Vector3.down);
+
+                if (Physics.Raycast(rightRay, out RaycastHit rightHit, DistanceToGround + 1f, GroundLayers))
+                {
+                    if (rightHit.transform.tag == "WalkableGround")
+                    {
+                        Vector3 footPosition = rightHit.point;
+                        footPosition.y += DistanceToGround;
+
+                        _animator.SetIKPosition(AvatarIKGoal.RightFoot, footPosition);
+                        _animator.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, rightHit.normal));
                     }
                 }
             }
@@ -808,18 +917,18 @@ namespace StarterAssets
 
         IEnumerator ActivateAttackObjectCoroutine()
         {
-            
 
+            _isAttacking = false;
             // 애니메이션이 끝날 때까지 대기
             yield return new WaitForSeconds(0.5f);
-
+            _isAttacking = true;
             
             
 
             // 공격 상태 초기화
 
             
-                _isAttacking = false;
+                //_isAttacking = false;
                 isAiming = false;
             
 
