@@ -119,6 +119,7 @@ namespace StarterAssets
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
         public GameObject _attackObject;
+        public GameObject attackEffect;
         private Collider attackCollider;
         private CharacterStat characterStat;
         private const float _threshold = 0.01f;
@@ -653,8 +654,10 @@ namespace StarterAssets
                         if(!arrowSpawned)
                         {
                             arrow = Instantiate(ArrowObj, rightHandObj.position, rightHandObj.rotation);
-                            
+                            Collider arrowCollider = arrow.GetComponent<Collider>();
+                            arrowCollider.enabled = false;
                             arrow.transform.SetParent(rightHandObj.transform);
+                            
                             arrowSpawned = true;
                             
                             //arrowTrailEffect.Stop();
@@ -711,7 +714,10 @@ namespace StarterAssets
                 _animator.SetBool("AimHold", false);
                 if (currentState.IsName("AimOverdraw") && arrow != null)
                 {
+                    Collider arrowCollider = arrow.GetComponent<Collider>();
+                    arrowCollider.enabled = true;
                     arrow.transform.SetParent(null); // 홀드를 놓을 때 화살의 부모를 해제합니다.
+                    
                     if (arrowRigidbody != null)
                     {
                         Debug.Log("Sasdsazx");
@@ -881,11 +887,23 @@ namespace StarterAssets
         private void enableAttackCol()
         {
             attackCollider.enabled = true;
+            Vector3 colliderPosition = _attackObject.transform.position;
+
         }
 
         private void disableAttackCol()
         {
             attackCollider.enabled = false;
+        }
+
+        private void enableAttackEffect()
+        {
+            attackEffect.SetActive(true);
+        }
+
+        private void disableAttackEffect()
+        {
+            attackEffect.SetActive(false);
         }
 
         private void shootStart()

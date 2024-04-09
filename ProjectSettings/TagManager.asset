@@ -10,6 +10,7 @@ TagManager:
   - Dragon
   - Head
   - Arrow
+  - Effect
   layers:
   - Default
   - TransparentFX

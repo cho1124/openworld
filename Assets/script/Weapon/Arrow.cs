@@ -26,15 +26,33 @@ public class Arrow : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Dragon"))
+        if (other.CompareTag("Dragon") || other.CompareTag("Head"))
         {
-            Instantiate(effect, transform.position, Quaternion.identity);
-            
+            GameObject effectInstance = Instantiate(effect, transform.position, Quaternion.identity);
+
+            // 일정 시간(예: 5초)이 지난 후에 effectInstance를 파괴합니다.
+            Destroy(effectInstance, 1.0f);
+
             Destroy(gameObject);
             
 
             //Debug.Log("headShot");
 
         }
+
+        if (other.gameObject.layer == LayerMask.NameToLayer("Obstacle") || other.gameObject.layer == LayerMask.NameToLayer("Default"))
+        {
+
+            Rigidbody arrowRigidbody = GetComponent<Rigidbody>();
+            arrowRigidbody.isKinematic = true;
+
+            GameObject effectInstance = Instantiate(effect, transform.position, Quaternion.identity);
+            
+            // 일정 시간(예: 5초)이 지난 후에 effectInstance를 파괴합니다.
+            Destroy(effectInstance, 1.0f);
+            
+            //Destroy(gameObject, 1.0f);
+        }
+
     }
 }
