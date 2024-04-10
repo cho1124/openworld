@@ -240,6 +240,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   isDead: 0
+  attackDamageSum: 0
 --- !u!114 &120500204
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10024,6 +10025,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterAnimator: {fileID: 120500228}
+  damage: 10
 --- !u!95 &95329519727546106 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 4707490920140887868, guid: 3a69c6e53e654184686eeebed58dc74b,

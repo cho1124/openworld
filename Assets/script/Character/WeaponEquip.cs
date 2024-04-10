@@ -1,6 +1,16 @@
+using StarterAssets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+public enum WeaponType
+{
+    None = 0,
+    Sword = 1,
+    Bow = 2,
+    // 추가 무기 종류는 여기에 나열
+}
+
 
 public class WeaponEquip : MonoBehaviour
 {
@@ -9,6 +19,8 @@ public class WeaponEquip : MonoBehaviour
     public Transform rightHandPosition;
     public GameObject bow;
     public GameObject sword;
+    private WeaponType currentWeapon = WeaponType.None; // 현재 장착된 무기
+
 
     private bool equipBow = false;
     private bool equipSword = true;
@@ -19,35 +31,70 @@ public class WeaponEquip : MonoBehaviour
         animator = GetComponent<Animator>(); // 애니메이터 컴포넌트 가져오기
         
         animator.SetBool("UseSword", true);
+        currentWeapon = WeaponType.Sword;
+        animator.SetInteger("WeaponType", (int)currentWeapon);
         MoveBowToBack();
         MoveSwordToRightHand();
+        
 
 
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Z) && !equipBow)
+        if (Input.GetKeyDown(KeyCode.Alpha1) && !equipBow)
         {
-            ReleaseSword();
+            //ReleaseSword();
+            EquipWeapon(WeaponType.Bow);
             equipBow = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.X) && !equipSword)
+        if (Input.GetKeyDown(KeyCode.Alpha2) && !equipSword)
         {
 
-            ReleaseBow();
+            //ReleaseBow();
+            EquipWeapon(WeaponType.Sword);
             equipSword = true;
 
         }
     }
 
 
+    private void EquipWeapon(WeaponType newWeaponType)
+    {
+        switch(newWeaponType)
+        {
+            case WeaponType.None:
+                break;
+            case WeaponType.Bow:
+                equipSword = false;
+                animator.SetTrigger("ReleaseSword");
+                animator.SetBool("UseSword", false);
+                //animator.SetInteger("test", 1);
+                WeaponType weapon = WeaponType.Bow;
+                animator.SetInteger("WeaponType", (int)weapon);
+                
+                break;
+            case WeaponType.Sword:
+                equipBow = false;
+                animator.SetTrigger("ReleaseBow");
+                animator.SetBool("UseSword", true);
+                weapon = WeaponType.Sword;
+                animator.SetInteger("WeaponType", (int)weapon);
+
+                break;
+
+
+        }
+    }
+
     private void ReleaseBow()
     {
         equipBow = false;
         animator.SetTrigger("ReleaseBow");
         animator.SetBool("UseSword", true);
+        WeaponType weapon = WeaponType.Sword;
+        animator.SetInteger("WeaponType", (int)weapon);
     }
 
 
@@ -57,6 +104,9 @@ public class WeaponEquip : MonoBehaviour
         equipSword = false;
         animator.SetTrigger("ReleaseSword");
         animator.SetBool("UseSword", false);
+        //animator.SetInteger("test", 1);
+        WeaponType weapon = WeaponType.Bow;
+        animator.SetInteger("WeaponType", (int)weapon);
     }
 
 

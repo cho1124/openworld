@@ -17,6 +17,7 @@ public class Monster : MonoBehaviour
     {
         currentHealth -= damageAmount;
         animator.SetTrigger("Damaged");
+        Debug.Log(currentHealth);
         if (currentHealth <= 0)
         {
             Die();

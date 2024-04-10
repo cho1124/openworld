@@ -6,6 +6,7 @@ public class Bow : MonoBehaviour
 {
     private Animator animator;
     public Animator characterAnimator;
+    public int damage = 10;
 
     private void Start()
     {

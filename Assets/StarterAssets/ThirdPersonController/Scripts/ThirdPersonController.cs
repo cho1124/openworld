@@ -644,8 +644,9 @@ namespace StarterAssets
                 if (_animator)
                 {
                     
-                    if (!_animator.GetBool("UseSword")) //활 사용할 때의 강공
+                    if (_animator.GetInteger("WeaponType") == 2) //활 사용할 때의 강공
                     {
+                        
                         childAnimator.SetBool("Draw", _animator.GetBool(_animIDHold));
                         //flag 함수
                         isAiming = true;
@@ -687,7 +688,7 @@ namespace StarterAssets
 
             if (!_input.hold && _animator.GetBool(_animIDHold)) //홀드를 놓을 때
             {
-                if (!_animator.GetBool("UseSword"))
+                if (_animator.GetInteger("WeaponType") == 2)
                 {
                     //isAiming = false;
 

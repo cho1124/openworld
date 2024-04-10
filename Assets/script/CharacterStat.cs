@@ -6,6 +6,8 @@ public class CharacterStat : MonoBehaviour
     public int currentHealth { get; private set; }
     private Animator animator;
     public bool isDead = false;
+    public int attackDamageSum = 0;
+    
 
 
     // Start is called before the first frame update
@@ -13,6 +15,19 @@ public class CharacterStat : MonoBehaviour
     {
         currentHealth = maxHealth;
         animator = GetComponent<Animator>();
+        
+
+    }
+    private void Update()
+    {
+        if(animator.GetInteger("WeaponType") == 1) //칼일때
+        {
+            attackDamageSum = GetComponentInChildren<Sword>().damage;
+        }
+        else if(animator.GetInteger("WeaponType") == 2) //활일때
+        {
+            attackDamageSum = GetComponentInChildren<Bow>().damage;
+        }
     }
 
     // Method to apply damage to the character
