@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Dragon : Monster
 {
+
     public float breathCooldown = 5f;
     public float meleeAttackRange = 3f;
     public float flyingHealthThreshold = 50f;
@@ -40,7 +41,7 @@ public class Dragon : Monster
         
 
         // 드래곤의 추가 행동 패턴
-        if (currentHealth <= flyingHealthThreshold)
+        if (monsterData.currentHealth <= flyingHealthThreshold)
         {
             Fly();
         }

@@ -2,23 +2,23 @@ using UnityEngine;
 
 public class Monster : MonoBehaviour
 {
-    public int maxHealth;
-    public int currentHealth;
-    public int damage;
-    public Animator animator;
+    
+    public MonsterData monsterData;
+    public Animator animator;   
 
     protected virtual void Start()
     {
-        currentHealth = maxHealth;
+        monsterData.currentHealth = monsterData.maxHealth;
         animator = GetComponent<Animator>();
+        
     }
 
     public virtual void Damaged(int damageAmount)
     {
-        currentHealth -= damageAmount;
+        monsterData.currentHealth -= damageAmount;
         animator.SetTrigger("Damaged");
-        Debug.Log(currentHealth);
-        if (currentHealth <= 0)
+        Debug.Log(monsterData.currentHealth);
+        if (monsterData.currentHealth <= 0)
         {
             Die();
         }
@@ -26,9 +26,9 @@ public class Monster : MonoBehaviour
     public virtual void DamagedOnHead(int damageAmount)
     {
 
-        currentHealth -= damageAmount * 2;
+        monsterData.currentHealth -= damageAmount * 2;
         animator.SetTrigger("Damaged");
-        if (currentHealth <= 0)
+        if (monsterData.currentHealth <= 0)
         {
             Die();
         }
@@ -37,6 +37,6 @@ public class Monster : MonoBehaviour
     public void Die()
     {
         animator.SetTrigger("Die");
-        currentHealth = 0;
+        monsterData.currentHealth = 0;
     }
 }

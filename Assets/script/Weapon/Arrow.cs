@@ -42,7 +42,7 @@ public class Arrow : MonoBehaviour
             Destroy(gameObject);
             
 
-            //Debug.Log("headShot");
+            //Debug.Log("headShot"); 
 
         }
 

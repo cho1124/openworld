@@ -7,6 +7,7 @@ using UnityEngine.AI;
 public class FieldOfView : MonoBehaviour
 {
     private Animator animator;
+    public MonsterData monsterData;
     private Dragon dragon;
 
     // 시야 영역의 반지름과 시야 각도
@@ -107,9 +108,10 @@ public class FieldOfView : MonoBehaviour
 
             // 전투 상태로 전환
             animator.SetBool("InCombat", true); // 전투 상태 트리거 설정
+            monsterData.currentAIState = MonsterData.MonsterAIState.Attack; //몬스터의 상태를 변경시키도록 하고 위의 애니메이터를 다루는 부분은 매니저 스크립트로 바꿀 예정
 
             // 플레이어 추적
-            Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
+            //Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
             // 추적 방향 설정 등을 이어서 구현하십시오.
         }
 
@@ -156,7 +158,7 @@ public class FieldOfView : MonoBehaviour
             animator.SetFloat("Speed", 0f);
             animator.SetBool("InCombat", false);
         }
-    }
+    }//이 부분부터 아래 부분 전부 AI 매니저 스크립트로 옮길 예정
 
     void AttackPlayerIfInRange(Vector3 playerPosition)
     {

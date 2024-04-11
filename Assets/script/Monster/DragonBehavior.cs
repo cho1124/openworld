@@ -18,7 +18,7 @@ public class DragonBehavior : MonoBehaviour
     {
         if (other.CompareTag("Sword"))
         {
-            int damage = GetComponentInParent<CharacterStat>().attackDamageSum; // 무기의 데미지 계산
+            int damage = other.GetComponentInParent<CharacterStat>().attackDamageSum; // 무기의 데미지 계산
 
             //Debug.Log("headShot");
             monster.Damaged(damage); // 몬스터의 머리에 데미지를 적용하는 함수 호출
@@ -36,7 +36,7 @@ public class DragonBehavior : MonoBehaviour
             CharacterStat characterStat = other.GetComponent<CharacterStat>();
             if (characterStat != null)
             {
-                characterStat.TakeDamage(monster.damage);
+                //characterStat.TakeDamage(monster.damage);
             }
         }
     }
