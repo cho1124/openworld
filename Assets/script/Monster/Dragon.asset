@@ -17,3 +17,7 @@ MonoBehaviour:
   damage: 10
   currentHealth: 100
   moveSpeed: 5
+  meleeAttackRange: 3
+  chaseRange: 10
+  attackRange: 2
+  currentAIState: 3

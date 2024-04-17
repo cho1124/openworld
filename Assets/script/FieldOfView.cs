@@ -28,9 +28,12 @@ public class FieldOfView : MonoBehaviour
     public float combatSpeed = 1.0f; // 전투 속도
     public float idleSpeed = 1.0f;   // 대기 속도
 
-    private Transform playerTransform;
+    public Transform playerTransform;
 
     NavMeshAgent nmAgent;
+
+    
+
 
 
     // 마스크 2종
@@ -52,10 +55,11 @@ public class FieldOfView : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         nmAgent = GetComponent<NavMeshAgent>();
+
         // 0.2초 간격으로 코루틴 호출
         StartCoroutine(FindTargetsWithDelay(0.2f));
     }
-
+    
     IEnumerator FindTargetsWithDelay(float delay)
     {
         while (true)
@@ -107,18 +111,10 @@ public class FieldOfView : MonoBehaviour
             playerTransform = visibleTargets[0]; // 가장 가까운 플레이어 추적 (현재 가장 첫 번째 요소로 설정되어 있음)
 
             // 전투 상태로 전환
-            animator.SetBool("InCombat", true); // 전투 상태 트리거 설정
-            monsterData.currentAIState = MonsterData.MonsterAIState.Attack; //몬스터의 상태를 변경시키도록 하고 위의 애니메이터를 다루는 부분은 매니저 스크립트로 바꿀 예정
+           // animator.SetBool("InCombat", true); // 전투 상태 트리거 설정
+            monsterData.currentAIState = MonsterData.MonsterAIState.Combat; //몬스터의 상태를 변경시키도록 하고 위의 애니메이터를 다루는 부분은 매니저 스크립트로 바꿀 예정
 
-            // 플레이어 추적
-            //Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
-            // 추적 방향 설정 등을 이어서 구현하십시오.
-        }
-
-
-        if (animator.GetBool("InCombat")) // 전투 상태에서만 검사
-        {
-            TrackPlayer();
+            
         }
     }
 

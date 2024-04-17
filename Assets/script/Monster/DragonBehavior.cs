@@ -31,13 +31,6 @@ public class DragonBehavior : MonoBehaviour
             monster.Damaged(damage); // 몬스터의 머리에 데미지를 적용하는 함수 호출
         }
 
-        if (other.CompareTag("Player"))
-        {
-            CharacterStat characterStat = other.GetComponent<CharacterStat>();
-            if (characterStat != null)
-            {
-                //characterStat.TakeDamage(monster.damage);
-            }
-        }
+        
     }
 }
