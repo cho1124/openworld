@@ -8,10 +8,12 @@ public class Arrow : MonoBehaviour
 {
     public int damage;
     public GameObject effect;
-
+    
     private void Start()
     {
         damage += GetComponentInParent<CharacterStat>().attackDamageSum; //생성될 때 화살 자체의 데미지에 활의 데미지를 추가하도록 하였음, 내 기본 캐릭터의 공격력은 0으로 설정하였음
+        
+       
     }
 
 
@@ -51,7 +53,8 @@ public class Arrow : MonoBehaviour
 
             Rigidbody arrowRigidbody = GetComponent<Rigidbody>();
             arrowRigidbody.isKinematic = true;
-
+            GetComponent<TrailRenderer>().enabled = false;
+            GetComponent<Collider>().enabled = false;
             GameObject effectInstance = Instantiate(effect, transform.position, Quaternion.identity);
             
             // 일정 시간(예: 5초)이 지난 후에 effectInstance를 파괴합니다.

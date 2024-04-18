@@ -132,7 +132,7 @@ namespace StarterAssets
         private bool holdSuccessed = false;
         public float _attackCooldown = 1.0f; // 콤보를 유지할 시간
         public int maxComboCount = 3; // 최대 콤보 횟수
-
+        public float initialForce;
         private int _comboCount = 0; // 콤보 카운터
         
 
@@ -147,7 +147,7 @@ namespace StarterAssets
         public Transform lookObj = null;
         public GameObject ArrowObj = null;
         private GameObject arrow = null;
-        public GameObject arrowEffect = null;
+        //public GameObject arrowEffect = null;
         public GameObject chargeEffect = null;
         public GameObject AimLine = null;
 
@@ -718,7 +718,7 @@ namespace StarterAssets
                     Collider arrowCollider = arrow.GetComponent<Collider>();
                     arrowCollider.enabled = true;
                     arrow.transform.SetParent(null); // 홀드를 놓을 때 화살의 부모를 해제합니다.
-                    
+                    arrow.GetComponent<TrailRenderer>().enabled = true;
                     if (arrowRigidbody != null)
                     {
                         Debug.Log("Sasdsazx");
@@ -745,7 +745,7 @@ namespace StarterAssets
                 float animationProgress = _animator.GetCurrentAnimatorStateInfo(5).normalizedTime;
 
                 // 화살에 가해질 초기 힘의 크기를 설정합니다.
-                float initialForce = 10f;
+                //initialForce = 10f;
 
                 // 애니메이션의 시간이 지날수록 힘의 크기를 증가시킵니다.
                 float finalForce = initialForce + (animationProgress * 20f); // 애니메이션의 진행률에 따라 힘의 증가율을 조절합니다.
@@ -753,18 +753,7 @@ namespace StarterAssets
                 // 화살을 발사합니다.
                 arrowRigidbody.AddForce(CinemachineCameraTarget.transform.forward * finalForce, ForceMode.Impulse);
 
-                // 화살의 위치를 기준으로 이펙트를 생성합니다.
-                GameObject effect = Instantiate(arrowEffect, transform.position, transform.rotation);
-
-                // 이펙트를 활성화시킵니다.
-                effect.SetActive(true);
-
-                // 화살과 이펙트를 연결합니다.
-                ArrowEffectFollow arrowEffectFollow = effect.GetComponent<ArrowEffectFollow>();
-                if (arrowEffectFollow != null)
-                {
-                    arrowEffectFollow.SetArrow(arrowRigidbody);
-                }
+                
             }
         }
 

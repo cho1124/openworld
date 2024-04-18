@@ -11,6 +11,8 @@ public class MonsterData : ScriptableObject
     public float meleeAttackRange = 3f;
     public float chaseRange = 10f;
     public float attackRange = 2f;
+    public float Timer = 0f;
+    
     // 추가적인 몬스터 속성을 여기에 추가할 수 있습니다.
 
     public enum MonsterAIState

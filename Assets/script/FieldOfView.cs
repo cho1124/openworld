@@ -113,6 +113,7 @@ public class FieldOfView : MonoBehaviour
             // 전투 상태로 전환
            // animator.SetBool("InCombat", true); // 전투 상태 트리거 설정
             monsterData.currentAIState = MonsterData.MonsterAIState.Combat; //몬스터의 상태를 변경시키도록 하고 위의 애니메이터를 다루는 부분은 매니저 스크립트로 바꿀 예정
+            
 
             
         }

@@ -14,7 +14,7 @@ public class AiManager : MonoBehaviour
     public float combatSpeed = 1.0f; // 전투 속도
     // Start is called before the first frame update
     private FieldOfView fieldOfView;
-    private float Timer = 0f;
+    
     private bool isPatrolDestinationSet = false;
     public Transform[] points;
     private int destPoint = 0;
@@ -42,12 +42,20 @@ public class AiManager : MonoBehaviour
                 case MonsterData.MonsterAIState.Idle:
                     //Debug.Log("Idle");
                     IdleToPatrol(delay);
-                    
+                    if(animator.GetCurrentAnimatorStateInfo(0).IsName("Get Hit"))
+                    {
+                        monsterData.currentAIState = MonsterData.MonsterAIState.Combat;
+                    }
                     break;
 
                 case MonsterData.MonsterAIState.Patrol:
 
-                    
+
+                    if (animator.GetCurrentAnimatorStateInfo(0).IsName("Get Hit"))
+                    {
+                        monsterData.currentAIState = MonsterData.MonsterAIState.Combat;
+                    }
+
                     if (!isPatrolDestinationSet)
                     {
                         GotoNextPoint();
@@ -69,16 +77,16 @@ public class AiManager : MonoBehaviour
                 case MonsterData.MonsterAIState.Combat:
                     animator.SetBool("Patrol", false);
                     animator.SetBool("InCombat", true); // 전투 상태 트리거 설정
-                    Debug.Log("Combat");
-
+                    //Debug.Log("Combat");
+                    
                     TrackPlayer(delay);
-
-                    if(monsterData.currentHealth == 40)
+                    
+                    if (monsterData.currentHealth == 40)
                     {
                         animator.SetBool("Fly", true);
                     }
                     //FlameAttack(delay);
-
+                    
                     break;
 
                 case MonsterData.MonsterAIState.Die:
@@ -89,18 +97,18 @@ public class AiManager : MonoBehaviour
             }
         }
     }
-
     
+
     void IdleToPatrol(float delay)
     {
-        Timer += delay;
+        monsterData.Timer += delay;
         
-        if (Timer >= 5f) // 예시로 10초가 지나면 Patrol 상태로 전환하는 조건을 사용합니다.
+        if (monsterData.Timer >= 5f) // 예시로 10초가 지나면 Patrol 상태로 전환하는 조건을 사용합니다.
         {
             animator.SetBool("Patrol", true);
             animator.SetFloat("Speed", combatSpeed);
             monsterData.currentAIState = MonsterData.MonsterAIState.Patrol;
-            Timer = 0f; // 타이머 초기화
+            monsterData.Timer = 0f;
         }
     }
 
@@ -120,27 +128,49 @@ public class AiManager : MonoBehaviour
 
     void TrackPlayer(float delay)
     {
-        playerTransform = fieldOfView.playerTransform;
+        //두 가지의 경우를 처리, fov를 통해 플레이어를 감지하거나, 데미지를 입어서 강제로 전투상태로 돌입하거나
+        if(fieldOfView.playerTransform != null)
+        {
+            playerTransform = fieldOfView.playerTransform;
+        }
+        else
+        {
+            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+            //근처에 Player태그를 가진 오브젝트를 탐색하여 그 오브젝트를 추적하도록 함, chaseDisntance밖에 있으면 추적을 종료하고 다시 기본상태로 돌아감, chasedistance안에 있으면 바로 추적을 시작함
+        }
+
+        
         if (playerTransform == null)
         {
             Debug.Log("Returned");
             return;
         }
+
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Scream"))
+        {
+            monsterData.Timer = 0f;
+            nmAgent.speed = 0f;
+        }
+        else
+        {
+            nmAgent.speed = 2.5f;
+        }
+
             
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
         
+        
+
         if (distanceToPlayer <= chaseDistance)
         {
-            //Debug.Log(distanceToPlayer +", " + chaseDistance);
-
-
-
             // 플레이어에게 다가가고 공격
             if (distanceToPlayer > monsterData.meleeAttackRange)
             {
-                Timer += delay;
-                Debug.Log(Timer);
+                monsterData.Timer += delay;
+                
+                Debug.Log(monsterData.Timer);
                 // 플레이어 쪽으로 이동
+                FlameAttack();
                 nmAgent.SetDestination(playerTransform.position);
                 
                 // 추적하는 영역 제한
@@ -151,10 +181,13 @@ public class AiManager : MonoBehaviour
                 }
 
                 animator.SetFloat("Speed", combatSpeed);
+
+                
             }
             else
             {
                 // 플레이어 공격
+                monsterData.Timer = 0f;
                 AttackPlayerIfInRange(playerTransform.position);
             }
         }
@@ -168,6 +201,21 @@ public class AiManager : MonoBehaviour
         }
     }
 
+    void FlameAttack()
+    {
+        if (monsterData.Timer >= 10f)
+        {
+            Debug.Log("flame");
+            monsterData.Timer = 0f;
+            animator.SetTrigger("Breathe");
+            nmAgent.speed = 0f;
+        }
+        else
+        {
+            nmAgent.speed = 2.5f;
+        }
+    }
+
     void AttackPlayerIfInRange(Vector3 playerPosition)
     {
         animator.SetFloat("Speed", 0f);
@@ -175,6 +223,9 @@ public class AiManager : MonoBehaviour
         Debug.Log("Attack");
     }
 
+
+
+    //애니메이션 이벤트
     void BasicAttackStart()
     {
         Attackpoint1.SetActive(true);
@@ -195,16 +246,9 @@ public class AiManager : MonoBehaviour
         //Attackpoint2.SetActive(false);
     }
 
-    void FlameAttack(float delay)
-    {
-        Timer += delay;
+    
 
-        if(Timer > 5.0f)
-        {
-            //
-        }
-
-    }
+    
 
 
 
